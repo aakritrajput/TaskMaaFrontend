@@ -13,7 +13,7 @@ export default function Navbar() {
 
   // helper to check active route and return classes
   function linkClass(href: string) {
-    const base = "cursor-pointer transition text-xl lg:text-2xl";
+    const base = "cursor-pointer transition text-xl lg:text-[22px]";
     const active = "text-[#4cdcae]";
     const inactive = "text-white hover:text-[#4cdcae]";
 
@@ -100,7 +100,7 @@ export default function Navbar() {
           </div>
 
           {/* Links */}
-          <nav className="flex flex-col gap-3.5 text-white text-2xl flex-grow">
+          <nav className="flex flex-col gap-3.5 text-white text-[22px] flex-grow">
             <Link
               href="/"
               onClick={() => setMenuOpen(false)}
