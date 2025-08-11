@@ -33,7 +33,6 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-3.5 lg:gap-6">
           <Link href="/" className={linkClass("/")}>Home</Link>
-          <Link href="/features" className={linkClass("/features")}>Features</Link>
           <Link href="/about" className={linkClass("/about")}>About Maa</Link>
           <Link href="/contact" className={linkClass("/contact")}>Contact</Link>
         </div>
@@ -107,13 +106,6 @@ export default function Navbar() {
               className={pathname === "/" ? "text-[#4cdcae] cursor-pointer transition" : "cursor-pointer hover:text-[#4cdcae] transition"}
             >
               Home
-            </Link>
-            <Link
-              href="/features"
-              onClick={() => setMenuOpen(false)}
-              className={pathname === "/features" ? "text-[#4cdcae] cursor-pointer transition" : "cursor-pointer hover:text-[#4cdcae] transition"}
-            >
-              Features
             </Link>
             <Link
               href="/about"
