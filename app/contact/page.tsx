@@ -26,7 +26,7 @@ export default function ContactPage() {
 
     setLoading(true);
 
-    // 🚧 TEMPORARY: No backend yet, so we simulate sending
+    // TEMPORARY: No backend yet, so here i am simulate sending
     setTimeout(() => {
       console.log("Form Data:", { ...data, captchaToken });
       setStatus("Message captured! (Will be sent when backend is ready)");

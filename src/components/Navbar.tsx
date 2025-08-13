@@ -42,12 +42,12 @@ export default function Navbar() {
           {!isAuthenticated ? (
             <>
               <Link
-                href="/login"
+                href="/auth/login"
                 className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
               >
                 Login
               </Link>
-              <Link href="/signup" className="text-white cursor-pointer px-2 hover:text-[#4cdcae] transition">
+              <Link href="/auth/signup" className="text-white cursor-pointer px-2 hover:text-[#4cdcae] transition">
                 SignUp
               </Link>
             </>
@@ -128,14 +128,14 @@ export default function Navbar() {
             {!isAuthenticated ? (
               <>
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   onClick={() => setMenuOpen(false)}
                   className="bg-[#2FAC81] rounded-2xl px-6 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition text-center flex-1"
                 >
                   Login
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   onClick={() => setMenuOpen(false)}
                   className="text-white cursor-pointer hover:text-[#4cdcae] transition text-center flex-1"
                 >
