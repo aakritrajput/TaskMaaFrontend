@@ -4,12 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../lib/store";
+import { logout } from "../lib/features/auth/AuthSlice";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // dummy auth state
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  console.log('useState:', isAuthenticated)
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   // helper to check active route and return classes
   function linkClass(href: string) {
@@ -57,7 +63,10 @@ export default function Navbar() {
                 Profile
               </Link>
               <button
-                onClick={() => setIsAuthenticated(false)}
+                onClick={() => {
+                  dispatch(logout())
+                  router.push('/')
+                }}
                 className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
               >
                 Logout
@@ -153,10 +162,10 @@ export default function Navbar() {
                 </Link>
                 <button
                   onClick={() => {
-                    setIsAuthenticated(false);
-                    setMenuOpen(false);
+                    dispatch(logout())
+                    router.push('/')
                   }}
-                  className="bg-[#2FAC81] rounded-2xl px-6 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition text-center flex-1"
+                  className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
                 >
                   Logout
                 </button>

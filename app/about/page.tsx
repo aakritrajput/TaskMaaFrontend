@@ -22,7 +22,7 @@ export default function AboutPage() {
             Meet Maa — Your Strict but Loving Guide to Goals
           </h1>
           <p className="text-lg md:text-xl text-teal-100 max-w-2xl mx-auto">
-            She’ll cheer you when you’re winning, scold you when you’re slacking,
+            She&apos;ll cheer you when you&apos;re winning, scold you when you&apos;re slacking,
             and never let you forget your dreams.
           </p>
         </motion.div>

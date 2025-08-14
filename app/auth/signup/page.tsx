@@ -75,12 +75,9 @@ export default function SignupPage() {
           <Button type="submit">Sign Up</Button>
         </form>
 
-        <div className="mt-4 flex justify-between text-sm text-gray-300">
+        <div className="mt-4 flex justify-center text-sm text-gray-300">
           <Link href="/auth/login" className="text-teal-400 hover:underline cursor-pointer">
             Already have an account?
-          </Link>
-          <Link href="/auth/forgot-password" className="text-teal-400 hover:underline cursor-pointer">
-            Forgot Password?
           </Link>
         </div>
       </div>
