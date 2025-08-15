@@ -12,7 +12,6 @@ import { logout } from "../lib/features/auth/AuthSlice";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
-  console.log('useState:', isAuthenticated)
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
