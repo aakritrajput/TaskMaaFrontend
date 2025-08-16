@@ -33,7 +33,7 @@ export default function RootLayout({
         <Providers>
           <div className="bg-gradient-to-b from-[#0F2027] pt-3 via-[#2C5364] to-black">
             <Navbar/>
-             {children}
+              {children}
             <Footer/>
           </div>
         </Providers>

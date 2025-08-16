@@ -26,7 +26,9 @@ export default function Navbar() {
   }
 
   return (
-    <>
+    <div>
+    { !isAuthenticated ? 
+     <>
       {/* Navbar Container */}
       <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-20 w-[95vw] rounded-[20px] ">
         {/* Logo and Title */}
@@ -34,7 +36,7 @@ export default function Navbar() {
           <Image priority src="/TaskMaa_logo.png" alt="TaskMaa_Logo" width={40} height={40} />
           <h1 className="bg-gradient-to-r from-[#92f9e5] to-[#ffffff] bg-clip-text text-transparent text-2xl font-semibold">TaskMaa</h1>
         </div>
-
+        
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-3.5 lg:gap-6">
           <Link href="/" className={linkClass("/")}>Home</Link>
@@ -44,34 +46,15 @@ export default function Navbar() {
 
         {/* Desktop Login/Signup or Authenticated Links */}
         <div className="hidden md:flex gap-4 items-center">
-          {!isAuthenticated ? (
-            <>
-              <Link
-                href="/auth/login"
-                className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
-              >
-                Login
-              </Link>
-              <Link href="/auth/signup" className="text-white cursor-pointer px-2 hover:text-[#4cdcae] transition">
-                SignUp
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/profile" className="text-white cursor-pointer px-2 hover:text-[#4cdcae] transition">
-                Profile
-              </Link>
-              <button
-                onClick={() => {
-                  dispatch(logout())
-                  router.push('/')
-                }}
-                className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
-              >
-                Logout
-              </button>
-            </>
-          )}
+          <Link
+            href="/auth/login"
+            className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
+          >
+            Login
+          </Link>
+          <Link href="/auth/signup" className="text-white cursor-pointer px-2 hover:text-[#4cdcae] transition">
+            SignUp
+          </Link>
         </div>
 
         {/* Mobile Hamburger Menu Button */}
@@ -83,7 +66,6 @@ export default function Navbar() {
           <Menu size={28} />
         </button>
       </div>
-
       {/* Mobile Menu Overlay */}
       <div
         className={`fixed inset-0 z-50 backdrop-blur-[5px] backdrop-filter bg-[rgba(37,36,36,0.54)] transition-transform duration-300 ease-in-out
@@ -133,46 +115,28 @@ export default function Navbar() {
 
           {/* Bottom Login/Signup or Auth Links horizontally */}
           <div className="flex gap-4 justify-center items-center mt-auto">
-            {!isAuthenticated ? (
-              <>
-                <Link
-                  href="/auth/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="bg-[#2FAC81] rounded-2xl px-6 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition text-center flex-1"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setMenuOpen(false)}
-                  className="text-white cursor-pointer hover:text-[#4cdcae] transition text-center flex-1"
-                >
-                  SignUp
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="text-white cursor-pointer hover:text-[#4cdcae] transition text-center flex-1"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    dispatch(logout())
-                    router.push('/')
-                  }}
-                  className="bg-[#2FAC81] rounded-2xl px-4 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition"
-                >
-                  Logout
-                </button>
-              </>
-            )}
+            <Link
+              href="/auth/login"
+              onClick={() => setMenuOpen(false)}
+              className="bg-[#2FAC81] rounded-2xl px-6 py-2 text-white cursor-pointer hover:bg-[#27a26b] transition text-center flex-1"
+            >
+              Login
+            </Link>
+            <Link
+              href="/auth/signup"
+              onClick={() => setMenuOpen(false)}
+              className="text-white cursor-pointer hover:text-[#4cdcae] transition text-center flex-1"
+            >
+              SignUp
+            </Link>
           </div>
         </div>
       </div>
+     </>
+    :
+    <>
     </>
+    }
+    </div>
   );
 }
