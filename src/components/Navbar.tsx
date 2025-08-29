@@ -85,6 +85,7 @@ export default function Navbar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (overlayRef.current && !overlayRef.current.contains(e.target as Node)) {
         setIsOverlayOpen(false);
+        setSearchedTasks([]);
         setSearchValue("");
       }
     };
