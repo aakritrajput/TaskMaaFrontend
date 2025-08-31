@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
 import { Providers } from "@/src/lib/providers";
+import SideOrDownBar from "@/src/components/user/sideOrDownBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <Providers>
           <div className="bg-gradient-to-b from-[#0F2027] pt-3 via-[#2C5364] to-black">
             <Navbar/>
+              <SideOrDownBar/>
               {children}
             <Footer/>
           </div>

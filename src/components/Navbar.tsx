@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { /*useDispatch,*/ useSelector } from "react-redux";
 import type { RootState } from "../lib/store";
@@ -114,7 +114,7 @@ export default function Navbar() {
     { !isAuthenticated ? 
      <>
       {/* Navbar Container */}
-      <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-18 w-[95vw] rounded-[20px] ">
+      <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-16 w-[95vw] rounded-[20px] ">
         {/* Logo and Title */}
         <div className="flex gap-2 items-center">
           <Image priority src="/TaskMaa_logo.png" alt="TaskMaa_Logo" width={40} height={40} />
@@ -238,7 +238,7 @@ export default function Navbar() {
             className="md:hidden text-white text-xl"
             onClick={() => setIsOverlayOpen(true)}
           >
-            🔍
+            <Search className="w-6 h-6"/>
           </button>
 
           {/* Desktop Input */}
