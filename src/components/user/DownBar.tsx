@@ -20,17 +20,17 @@ export default function SideOrDownBar() {
     <div
       className={`
         ${isAuthenticated ? 'flex md:flex-col' : 'hidden'}
-        fixed z-50  md:top-1/2 md:-translate-y-1/2 md:left-2 md:h-[60vh] md:w-20
-        bottom-0 left-0 w-full h-16
-        bg-gradient-to-br from-teal-900/50 to-emerald-800/40
-        backdrop-blur-xl shadow-lg md:rounded-xl
+        fixed z-50 left-1/2 -translate-x-1/2 md:w-[60vw]
+        bottom-0 w-[98vw] h-16 my-2
+        bg-gradient-to-br from-teal-900/50 to-emerald-900/40
+        backdrop-blur-xl shadow-lg rounded-xl
         border-t md:border-r border-white/10
       `}
     >
       <nav
         className="
           flex justify-around items-center w-full h-full
-          md:flex-col md:py-6 md:gap-8
+          md:py-6 md:gap-8
         "
       >
         {navItems.map((item) => {
@@ -43,12 +43,12 @@ export default function SideOrDownBar() {
               href={item.href}
               className="
                 flex flex-col items-center justify-center gap-1 
-                text-white/80 hover:text-white transition
+                text-white/80 hover:text-green-400 transition
               "
             >
               <Icon
                 className={`w-6 h-6 ${
-                  isActive ? "text-green-400" : "text-white/70"
+                  isActive ? "text-green-400" : "text-white"
                 }`}
               />
               <span
