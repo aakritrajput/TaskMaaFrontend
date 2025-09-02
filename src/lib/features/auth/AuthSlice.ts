@@ -5,13 +5,13 @@ export type User = { id: string; name: string };
 interface AuthState {
   user: User | null;
   token: string | null;
-  isAuthenticated: boolean;
+  authStatus:"loading" | "authenticated" | "unauthenticated";
 }
 
 const initialState: AuthState = {
   user: null,
   token: null,
-  isAuthenticated: false,
+  authStatus: 'loading',
 };
 
 const authSlice = createSlice({
@@ -21,12 +21,12 @@ const authSlice = createSlice({
     login: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
-      state.isAuthenticated = true;
+      state.authStatus = 'authenticated';
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
-      state.isAuthenticated = false;
+      state.authStatus = 'unauthenticated';
     },
   },
 });

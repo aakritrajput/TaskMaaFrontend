@@ -6,12 +6,13 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { Menu, X, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { /*useDispatch,*/ useSelector } from "react-redux";
-import type { RootState } from "../lib/store";
+import type { RootState } from "../../lib/store";
+import { FallbackNavbar } from "./NavbarFallbackUI";
 //import { logout } from "../lib/features/auth/AuthSlice";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const authStatus = useSelector((state: RootState) => state.auth.authStatus)
   const pathname = usePathname();
   const router = useRouter();
 //  const dispatch = useDispatch();
@@ -111,7 +112,10 @@ export default function Navbar() {
 
   return (
     <div>
-    { !isAuthenticated ? 
+    {authStatus === 'loading' &&
+    <FallbackNavbar/>
+    }
+    { authStatus === 'unauthenticated' && 
      <>
       {/* Navbar Container */}
       <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-16 w-[95vw] rounded-[20px] ">
@@ -217,7 +221,8 @@ export default function Navbar() {
         </div>
       </div>
      </>
-    :
+    }
+    {authStatus === 'authenticated' && 
     <>
     {/* Navbar */}
       <div className="mx-auto relative backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-16 w-[95vw] rounded-[20px]">
