@@ -6,23 +6,23 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutGrid },
-  { name: "Tasks", href: "/tasks", icon: ListChecks },
-  { name: "Shared Goals", href: "/shared-goals", icon: Users },
-  { name: "Chat", href: "/chat", icon: MessageSquare },
-  { name: "Maa", href: "/maa", icon: HeartHandshake },
+  { name: "Dashboard", href: "/user/dashboard", icon: LayoutGrid },
+  { name: "Tasks", href: "/user/tasks", icon: ListChecks },
+  { name: "Shared Goals", href: "/user/shared-goals", icon: Users },
+  { name: "Chat", href: "/user/chat", icon: MessageSquare },
+  { name: "Maa", href: "/user/maa", icon: HeartHandshake },
 ];
 
 export default function SideOrDownBar() {
   const pathname = usePathname();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const authStatus = useSelector((state: RootState) => state.auth.authStatus)
   return (
     <div
       className={`
-        ${isAuthenticated ? 'flex md:flex-col' : 'hidden'}
+        ${authStatus == 'authenticated' ? 'flex md:flex-col' : 'hidden'}
         fixed z-50 left-1/2 -translate-x-1/2 md:w-[60vw]
         bottom-0 w-[98vw] h-16 my-2
-        bg-gradient-to-br from-teal-900/50 to-emerald-900/40
+        bg-gradient-to-br from-[#2af8e37a] to-[#000000a8]
         backdrop-blur-xl shadow-lg rounded-xl
         border-t md:border-r border-white/10
       `}
@@ -54,7 +54,7 @@ export default function SideOrDownBar() {
               <span
                 className={`
                   text-[10px] text-center leading-tight
-                  ${isActive ? "text-green-400 font-medium" : "text-white/70"}
+                  ${isActive ? "text-green-400 font-bold" : "text-white/70"}
                 `}
               >
                 {item.name}
