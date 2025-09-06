@@ -1,7 +1,7 @@
 export default function Dashboard(){
-    return (
+    return(
         <>
-        <div className="w-full min-h-[90vh]">
+        <div className="w-full h-[90vh]">
 
         </div>
         </>

@@ -48,13 +48,13 @@ export default function SideOrDownBar() {
             >
               <Icon
                 className={`w-6 h-6 ${
-                  isActive ? "text-green-400" : "text-white"
+                  isActive ? "text-[#e08308]" : "text-white"
                 }`}
               />
               <span
                 className={`
                   text-[10px] text-center leading-tight
-                  ${isActive ? "text-green-400 font-bold" : "text-white/70"}
+                  ${isActive ? "text-[#e08308] font-bold" : "text-white/70"}
                 `}
               >
                 {item.name}
