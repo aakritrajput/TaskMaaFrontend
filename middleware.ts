@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
 
 // for now we will make fake isAuthenticated which will be true
 
-  const isAuthenticated = true;
+  const isAuthenticated = false;
   const { pathname } = req.nextUrl;
 
   // Redirect authenticated user from "/" → "/user/dashboard"
@@ -18,7 +18,7 @@ export function middleware(req: NextRequest) {
 
   // Redirect non-authenticated users from protected routes
   if (pathname.startsWith("/user") && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
