@@ -15,7 +15,7 @@ function InitAuth() {
       data: { user: { id: "12345", name: "Aakrit" }, token: "12324324" },
     };
     
-    if (response.status == 200) {  // will do deep check that if response includes logged in or out as the reponse will be 200 for successful req but for now we will be using this only
+    if (response.status !== 200) {  // will do deep check that if response includes logged in or out as the reponse will be 200 for successful req but for now we will be using this only
       console.log("Not logged in !!");
       dispatch(logout()) // if not logged in to toggle authstatus from loading to unauthenticated
       return;

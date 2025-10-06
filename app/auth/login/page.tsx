@@ -31,7 +31,7 @@ export default function LoginPage() {
       return ;
     }
     dispatch(login(response.data))
-    router.push('/')
+    router.push('/user/dashboard')
   };
 
   return (
