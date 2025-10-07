@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.scrollable-div {
+  overflow: auto; /* or scroll */
+  scrollbar-width: none; /* for Firefox */
+  -ms-overflow-style: none;  /* for IE 10+ */
+}
+
+.scrollable-div::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, and Edge */
+}
