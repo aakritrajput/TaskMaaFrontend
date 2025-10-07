@@ -22,7 +22,7 @@ export default function SideOrDownBar() {
         ${authStatus == 'authenticated' ? 'flex md:flex-col' : 'hidden'}
         fixed z-50 left-1/2 -translate-x-1/2 md:w-[60vw]
         bottom-0 w-[98vw] h-16 my-2
-        bg-gradient-to-br from-[#2af8e37a] to-[#000000a8]
+        bg-gradient-to-br from-[#00000085] to-[#0000006c]
         backdrop-blur-xl shadow-lg rounded-xl
         border-t md:border-r border-white/10
       `}

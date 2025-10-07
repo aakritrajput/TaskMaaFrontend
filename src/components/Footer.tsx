@@ -6,8 +6,8 @@ import { Github, Linkedin, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="w-full pt-8 pb-20  px-6 max-w-7xl mx-auto text-gray-300 select-none
-                       backdrop-blur-xl bg-white/10 border-t border-white/20 rounded-t-3xl"
+    <footer className="w-full pt-8 pb-20  px-6  mx-auto text-gray-300 select-none
+                       backdrop-blur-xl bg-black/10 border-t shadow-amber-300 shadow-2xl border-white/20 rounded-t-3xl"
     >
      <div className='flex flex-col md:flex-row items-center justify-between'>
         
