@@ -47,6 +47,25 @@ const taskSlice = createSlice({
         errorGettingGeneralTasks:  (state) => {
             state.generalTasksStatus = 'Error';
         },
+        addTask: (state, action: PayloadAction<TaskType>) => {
+            const task = action.payload
+            if(task.type == 'daily'){
+                state.dailyTasks = [...state.dailyTasks, task];
+            }
+            else if(task.type == 'general') {
+                state.generalTasks = [...state.generalTasks, task];;
+            }
+        },
+        updateIdOfNewlyAddedTask: (state, action: PayloadAction<{oldId: string, newId: string, type: TaskType['type']}>) => {
+            if(action.payload.type == 'daily'){
+                const newdailyTasks = state.dailyTasks.map((dailyTask) => dailyTask._id == action.payload.oldId ? {...dailyTask, _id: action.payload.newId} : dailyTask);
+                state.dailyTasks = newdailyTasks;
+            }
+            else if(action.payload.type == 'general') {
+                const newGeneralTasks = state.generalTasks.map((genTask) => genTask._id == action.payload.oldId ? {...genTask, _id: action.payload.newId} : genTask);
+                state.generalTasks = newGeneralTasks;
+            }
+        },
         editTask: (state, action: PayloadAction<TaskType>) => {
             const task = action.payload
             if(task.type == 'daily'){
@@ -71,5 +90,5 @@ const taskSlice = createSlice({
     },
 })
 
-export const {addDailyTasks, addGeneralTasks, errorGettingDailyTasks, errorGettingGeneralTasks, editTask, deleteTask} = taskSlice.actions;
+export const {addDailyTasks, addGeneralTasks, errorGettingDailyTasks, errorGettingGeneralTasks, addTask, updateIdOfNewlyAddedTask, editTask, deleteTask} = taskSlice.actions;
 export default taskSlice.reducer;
