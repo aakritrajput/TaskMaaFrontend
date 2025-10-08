@@ -153,6 +153,12 @@ export default function TasksPage() {
       : tasks.filter((t) => t.status !== "completed");
   };
 
+  const playSound = (path: string) => {
+    const audio = new Audio(path);
+    audio.volume = 0.6; // not too loud
+    audio.play();
+  };
+
   const taskStatusToggleHandler = async(task: taskType) => {
     console.log('btn clicked')
     try {
@@ -161,6 +167,11 @@ export default function TasksPage() {
       if (response.status == 'OK') {
         dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
       }
+      if(task.status == 'completed'){
+        if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
+        else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav')
+      }else playSound('/sounds/incompleteTaskSound.wav')
+    
     } catch (error) {
       if(error instanceof Error){
         alert(`${error.message}, Therefore need to refresh the whole page !!`)
