@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 // import axios from "axios";
-import { addDailyTasks, addGeneralTasks, errorGettingDailyTasks } from "@/src/lib/features/tasks/TaskSlice";
+import { addDailyTasks, addGeneralTasks, editTask, errorGettingDailyTasks } from "@/src/lib/features/tasks/TaskSlice";
 
 type taskType = {
     _id: string;
@@ -81,6 +81,24 @@ export default function TasksPage() {
       : tasks.filter((t) => t.status !== "completed");
   };
 
+  const taskStatusToggleHandler = async(task: taskType) => {
+    console.log('btn clicked')
+    try {
+      // const response = await axios.put(`http://localhost:8000/api/editTask/${task._id}`,task , {withCredentials: true})
+      const response = {status:'OK'};
+      if (response.status == 'OK') {
+        dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
+      }
+    } catch (error) {
+      if(error instanceof Error){
+        alert(`There was some Error toggling your task status: , ${error.message}, Therefore need to refresh the whole page`)
+      }else {
+        alert("There was some Error toggling your task status !! - Need to refresh the whole page.. ")
+      }
+      window.location.reload()
+    }
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#061b1c] via-[#0b2d2f] to-[#0e4446] text-white p-6 md:p-10">
       <div className="max-w-6xl mx-auto space-y-10">
@@ -146,10 +164,10 @@ export default function TasksPage() {
                     }`}
                 >
                   {
-                    task.status === 'completed' && <div className="absolute w-[96%] left-2 h-[4px] bg-green-300 rounded-2xl z-10"></div>
+                    task.status === 'completed' && <div className="absolute w-[96%] left-2 h-[3px] bg-green-300 rounded-2xl z-10"></div>
                   }
                   <div className="flex gap-2 items-center">
-                    <button className="hover:text-teal-400 cursor-pointer">
+                    <button onClick={() => taskStatusToggleHandler({...task, status: task.status == 'inProgress' ? 'completed' : 'inProgress'})} className="hover:text-teal-400 cursor-pointer">
                       {task.status === "completed" ? (
                         <CheckCircle size={20} className="text-emerald-500" />
                       ) : (
@@ -243,10 +261,10 @@ export default function TasksPage() {
                   `}
                 > 
                   {
-                    task.status === 'completed' && <div className="absolute w-[96%] left-2 h-[4px] bg-green-300 rounded-2xl z-10"></div>
+                    task.status === 'completed' && <div className="absolute w-[96%] left-2 h-[3px] bg-green-300 rounded-2xl z-10"></div>
                   }
                   <div className="flex gap-2 items-center">
-                    <button className="hover:text-teal-400 cursor-pointer">
+                    <button onClick={() => taskStatusToggleHandler({...task, status: task.status == 'inProgress' ? 'completed' : 'inProgress'})} className="hover:text-teal-400 cursor-pointer">
                       {task.status === "completed" ? (
                         <CheckCircle size={20} className="text-emerald-500" />
                       ) : (

@@ -54,8 +54,8 @@ const taskSlice = createSlice({
                 state.dailyTasks = newdailyTasks;
             }
             else if(task.type == 'general') {
-                const newGeneralTasks = state.dailyTasks.map((genTask) => genTask._id == task._id ? task : genTask);
-                state.dailyTasks = newGeneralTasks;
+                const newGeneralTasks = state.generalTasks.map((genTask) => genTask._id == task._id ? task : genTask);
+                state.generalTasks = newGeneralTasks;
             }
         },
         deleteTask: (state, action: PayloadAction<{_id: string, type: 'daily' | 'general'}>) => {
@@ -64,8 +64,8 @@ const taskSlice = createSlice({
                 state.dailyTasks = newdailyTasks;
             }
             else if (action.payload.type == 'general'){
-                const newGeneralTasks = state.dailyTasks.filter((genTask) => genTask._id !== action.payload._id)
-                state.dailyTasks = newGeneralTasks;
+                const newGeneralTasks = state.generalTasks.filter((genTask) => genTask._id !== action.payload._id)
+                state.generalTasks = newGeneralTasks;
             }
         }
     },
