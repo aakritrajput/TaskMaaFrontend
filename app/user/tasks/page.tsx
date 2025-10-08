@@ -5,6 +5,7 @@ import { Pencil, Trash2, CheckCircle2, CheckCircle, PlusCircle } from "lucide-re
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
+import confetti from "canvas-confetti";
 // import axios from "axios";
 import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
@@ -159,6 +160,32 @@ export default function TasksPage() {
     audio.play();
   };
 
+  const showConfetti = () => {
+    const end = Date.now() + 300; // 300ms burst time
+    const colors = ["#00FFB2", "#00C9FF", "#00FFC6", "#A7FFEB", "#db2777", "#ca8a04"];
+
+    (function frame() {
+      confetti({
+        particleCount: 6,
+        angle: 60,
+        spread: 80,
+        origin: { x: 0 },
+        colors,
+      });
+      confetti({
+        particleCount: 6,
+        angle: 120,
+        spread: 80,
+        origin: { x: 1 },
+        colors,
+      });
+
+      if (Date.now() < end) { // this is telling browser to rerun the animation untill the condition is satisfied
+        requestAnimationFrame(frame);
+      }
+    })();
+  };
+
   const taskStatusToggleHandler = async(task: taskType) => {
     console.log('btn clicked')
     try {
@@ -170,8 +197,9 @@ export default function TasksPage() {
       if(task.status == 'completed'){
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
         else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav')
+        showConfetti();
       }else playSound('/sounds/incompleteTaskSound.wav')
-    
+
     } catch (error) {
       if(error instanceof Error){
         alert(`${error.message}, Therefore need to refresh the whole page !!`)
