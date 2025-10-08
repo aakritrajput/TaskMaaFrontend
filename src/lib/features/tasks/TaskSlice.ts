@@ -10,7 +10,7 @@ type TaskType = {
     importance: "low" | "medium" | "high";
     status: "inProgress"| "completed";
     type: "daily" | "general" ;
-    dueDate: Date;
+    dueDate: string;
 }
 
 type taskStateType = {

@@ -34,3 +34,12 @@ body {
 .scrollable-div::-webkit-scrollbar {
   display: none; /* for Chrome, Safari, and Edge */
 }
+
+@keyframes shimmer {
+  0% { transform: translate(-100%, -100%); }
+  100% { transform: translate(100%, 100%); }
+}
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+  background-size: 200% 200%;
+}
