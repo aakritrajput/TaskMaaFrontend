@@ -291,8 +291,8 @@ export default function TaskMaaDashboard() {
               <div className="scrollable-div max-h-[75vh] md:max-h-[50vh]">
                 {tasks
                   .filter((t) => t.type === "daily")
-                  .map((t) => (
-                    <div key={t.title} className="flex items-center justify-between p-3 rounded-lg bg-white/3">
+                  .map((t, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-white/3">
                       <div className="flex items-start gap-3">
                         {/* importance color bar */}
                         <div className={`w-1 h-10 rounded ${t.importance === "high" ? "bg-red-400" : t.importance === "medium" ? "bg-yellow-400" : "bg-green-400"}`} />
@@ -323,8 +323,8 @@ export default function TaskMaaDashboard() {
               <div className="scrollable-div max-h-[75vh] md:max-h-[50vh]">
                 {tasks
                   .filter((t) => t.type === "general")
-                  .map((t) => (
-                    <div key={t.title} className="flex mt-3 items-center justify-between p-3 rounded-lg bg-white/3">
+                  .map((t, idx) => (
+                    <div key={idx} className="flex mt-3 items-center justify-between p-3 rounded-lg bg-white/3">
                       <div className="flex items-start gap-3">
                         <div className={`w-1 h-10 rounded ${t.importance === "high" ? "bg-red-400" : t.importance === "medium" ? "bg-yellow-400" : "bg-green-400"}`} />
                         <div>
