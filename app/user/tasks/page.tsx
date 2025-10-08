@@ -6,9 +6,10 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 // import axios from "axios";
-import { addDailyTasks, addGeneralTasks, deleteTask, editTask, errorGettingDailyTasks } from "@/src/lib/features/tasks/TaskSlice";
+import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
+import Modal from "@/src/components/user/TaskCreateOrEditModal";
 
-type taskType = {
+export type taskType = {
     _id: string;
     user: string; // will be user id
     title: string;
@@ -31,6 +32,71 @@ export default function TasksPage() {
   const generalTaskStatus = TaskState.generalTasksStatus ;
   const todayTasks = TaskState.dailyTasks ;
   const generalTasks = TaskState.generalTasks ;
+
+  // stuff for creating and editing the task
+
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalInitial, setModalInitial] = useState<Partial<taskType>>({});
+
+  function openCreate(type: taskType['type']) {
+    const initial: Partial<taskType> = { type, status: "inProgress", importance: "low" };
+    if (type === "daily") initial.dueDate = new Date().toISOString();
+    setModalInitial(initial);
+    setIsModalOpen(true);
+  }
+
+  function openEdit(task: taskType) {
+    setModalInitial(task);
+    setIsModalOpen(true);
+  }
+  
+  
+  function closeModal() {
+    setIsModalOpen(false);
+    setModalInitial({});
+  }
+
+  async function handleModalSubmit(task: Partial<taskType>) {
+    closeModal();
+    if (task._id) {
+      try {
+        // const response = await axios.put(`http://locahost/api/editTask/${task._id}`, task, {withCredentials: true})
+        const response = {data: task} // here we are making dummy response -- later we will instantly updates the ui and if any errorfrom backend then refreshes the page so that it syncs again !!
+        dispatch(editTask(response.data as taskType))
+      } catch (error) {
+        if(error instanceof Error){
+          alert(`${error.message}, Therefore need to refresh the whole page !!`)
+        }else {
+          alert("There was some Error editing your task !! - Need to refresh the whole page.. ")
+        }
+        window.location.reload()
+      }
+    } else {
+      try {
+        // this is for creating a new task as that will not be having any id !!
+        const tempId = 'temp123' // WE CAN IN FUTURE GENERATE DYNAMIC TEMP IDs
+        
+        // NOTE: we will keep newly created tasks at the end as i should see that task on top which was firstly created !!
+  
+        dispatch(addTask({...task, _id: tempId} as taskType))
+        // const response = await axios.post("http://locahost:8000/api/createTask", task, {withCredentials: true})
+        const response = {data: {...task, _id: Date.now().toString()}} // faking response
+        dispatch(updateIdOfNewlyAddedTask({oldId: tempId, newId: response.data._id, type: task.type as taskType['type']}))
+      } catch (error) {
+        if(error instanceof Error){
+          alert(`${error.message}, Therefore need to refresh the whole page !!`)
+        }else {
+          alert("There was some Error creating your task !! - Need to refresh the whole page.. ")
+        }
+        window.location.reload()
+      }
+
+    }
+  }
+  
+
+
+  //------  api call and data hydration ------
 
   useEffect(()=>{
 
@@ -77,7 +143,11 @@ export default function TasksPage() {
   // ------------ helper functions ----------------
 
   const filterTasks = (tasks: taskType[], filter: string) => {
-    if (filter === "All") return tasks;
+    if (filter === "All") {
+      const completedTasks = tasks.filter(task => task.status == 'completed');
+      const inCompletedTasks = tasks.filter(task => task.status !== 'completed');
+      return [...inCompletedTasks, ...completedTasks]; // this is done so that our imcompleted Tasks should be on top and incompleted ones at the bottom !!
+    };
     return filter === "Completed"
       ? tasks.filter((t) => t.status === "completed")
       : tasks.filter((t) => t.status !== "completed");
@@ -130,11 +200,11 @@ export default function TasksPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#061b1c] via-[#0b2d2f] to-[#0e4446] text-white p-6 md:p-10">
       <div className="max-w-6xl mx-auto space-y-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-emerald-300">
+        <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-500">
           Your Tasks
         </h1>
 
-        <div className="grid md:grid-cols-2 gap-10">
+        <div className="grid md:grid-cols-2 gap-10"> {/* Here we can make a seperate component as most of the thing will be same for both daily and general but I thought why to pass extra args like today's task and different classes and that just for 2 components - hence here we have both the component code here itself */}
           {/* ---------------- TODAY TASKS ---------------- */}
           <div
             className="backdrop-blur-lg relative bg-white/10 border min-h-[250px] border-white/20 rounded-2xl p-6 shadow-2xl"
@@ -146,7 +216,7 @@ export default function TasksPage() {
               <h2 className="text-xl font-semibold text-emerald-200">
                 Today’s Tasks
               </h2>
-              <button disabled={dailyTasksStatus === 'Loading'}  className={` ${dailyTasksStatus == 'Loading' ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 rounded-xl hover:opacity-90 transition`}>
+              <button onClick={() => openCreate("daily")} disabled={dailyTasksStatus === 'Loading'}  className={` ${dailyTasksStatus == 'Loading' ? "cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-pink-600 px-4 py-2 rounded-xl hover:opacity-90 transition`}>
                 <PlusCircle size={18} />
                 Add Today Task
               </button>
@@ -211,7 +281,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-3">
                     {
                       task.status !== 'completed' && 
-                      <button className="hover:text-emerald-400">
+                      <button onClick={() => openEdit(task)} className="hover:text-emerald-400 cursor-pointer">
                         <Pencil size={18} />
                       </button>
                     }
@@ -240,7 +310,7 @@ export default function TasksPage() {
               <h2 className="text-xl font-semibold text-teal-200">
                 General Tasks
               </h2>
-              <button disabled={generalTaskStatus === 'Loading'} className={` ${ generalTaskStatus == 'Loading' ? 'cursor-not-allowed' : 'cursor-pointer'} flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-2 rounded-xl hover:opacity-90 transition`}>
+              <button onClick={() => openCreate("general")} disabled={generalTaskStatus === 'Loading'} className={` ${ generalTaskStatus == 'Loading' ? 'cursor-not-allowed' : 'cursor-pointer'} flex items-center gap-2 bg-gradient-to-r from-teal-600 to-yellow-600 px-4 py-2 rounded-xl hover:opacity-90 transition`}>
                 <PlusCircle size={18} />
                 Add General Task
               </button>
@@ -301,7 +371,7 @@ export default function TasksPage() {
                       <p className="font-medium">{task.title}</p>
                       <ImportanceBadge importance={task.importance} />
                       <p className="text-xs text-white/50">
-                        Due: {task.dueDate}
+                        Due: {task.dueDate.slice(0, 10)}
                       </p>
                       <p className="text-sm text-[#a8a4a4]">{task.description}</p>
                     </div>
@@ -309,7 +379,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-3">
                     {
                       task.status !== 'completed' && 
-                      <button className="hover:text-emerald-400 cursor-pointer">
+                      <button onClick={() => openEdit(task)} className="hover:text-emerald-400 cursor-pointer">
                         <Pencil size={18} />
                       </button>
                     }
@@ -332,6 +402,7 @@ export default function TasksPage() {
           See all your tasks
         </p>
       </div>
+      <Modal open={isModalOpen} onClose={closeModal} initial={modalInitial} onSubmit={handleModalSubmit}/>
     </div>
   );
 }
