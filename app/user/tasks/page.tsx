@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 // import axios from "axios";
-import { addDailyTasks, addGeneralTasks, editTask, errorGettingDailyTasks } from "@/src/lib/features/tasks/TaskSlice";
+import { addDailyTasks, addGeneralTasks, deleteTask, editTask, errorGettingDailyTasks } from "@/src/lib/features/tasks/TaskSlice";
 
 type taskType = {
     _id: string;
@@ -36,7 +36,7 @@ export default function TasksPage() {
 
     // Dummy data (for layout only)
     const todayTasksDummy: taskType[] = [
-      { _id: "1", user: '123', title: "Finish TaskMaa UI", status: "inProgress", importance: "high" , type: 'daily', dueDate: (new Date()).toISOString()},
+      { _id: "1", user: '123',description: 'This task is very very important i have to complete it no matter what is the opportunity !', title: "Finish TaskMaa UI", status: "inProgress", importance: "high" , type: 'daily', dueDate: (new Date()).toISOString()},
       { _id: "2", user: '123', title: "Revise ML course", status: "completed", importance: "medium" , type: 'daily', dueDate: (new Date()).toISOString()},
     ];
   
@@ -74,6 +74,8 @@ export default function TasksPage() {
 
   }, [generalTaskStatus, dispatch, dailyTasksStatus]);
 
+  // ------------ helper functions ----------------
+
   const filterTasks = (tasks: taskType[], filter: string) => {
     if (filter === "All") return tasks;
     return filter === "Completed"
@@ -91,12 +93,38 @@ export default function TasksPage() {
       }
     } catch (error) {
       if(error instanceof Error){
-        alert(`There was some Error toggling your task status: , ${error.message}, Therefore need to refresh the whole page`)
+        alert(`${error.message}, Therefore need to refresh the whole page !!`)
       }else {
         alert("There was some Error toggling your task status !! - Need to refresh the whole page.. ")
       }
       window.location.reload()
     }
+  }
+
+  const deleteTaskHandler = async(task: {_id: string, type: 'daily' | 'general'}) => {
+    try {
+       // const response = await axios.delete(`http://localhost:8000/api/deleteTask/${task._id}`, {withCredentials: true})
+      const response = {status:'OK'};
+      if (response.status == 'OK') {
+        dispatch(deleteTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
+      }
+    } catch (error) {
+      if(error instanceof Error){
+        alert(`${error.message}, Therefore need to refresh the whole page !!`)
+      }else {
+        alert("There was some Error deleting your task !! - Need to refresh the whole page.. ")
+      }
+      window.location.reload()
+    }
+  }
+
+  // --------- main page -----------------
+
+  function ImportanceBadge({ importance }: { importance: taskType["importance"] }) {
+    const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
+    if (importance === "high") return <span className={`${base} bg-red-600/30 text-red-200`}>High</span>;
+    if (importance === "medium") return <span className={`${base} bg-yellow-600/25 text-yellow-200`}>Medium</span>;
+    return <span className={`${base} bg-green-700/25 text-green-200`}>Low</span>;
   }
 
   return (
@@ -176,10 +204,8 @@ export default function TasksPage() {
                     </button>
                     <div>
                       <p className="font-medium">{task.title}</p>
-                      <p className={`text-xs ${task.importance == 'low' ? 'text-green-500' : task.importance == 'medium' ? 'text-yellow-500' : 'text-red-500'} capitalize`}>
-                        {task.importance} priority
-                      </p>
-                      <p className="text-sm text-[white]">{task.description}</p>
+                      <ImportanceBadge importance={task.importance} />
+                      <p className="text-sm text-[#a8a4a4]">{task.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -189,7 +215,7 @@ export default function TasksPage() {
                         <Pencil size={18} />
                       </button>
                     }
-                    <button className="hover:text-rose-400">
+                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type})} className="hover:text-rose-400 cursor-pointer">
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -273,20 +299,21 @@ export default function TasksPage() {
                     </button>
                     <div>
                       <p className="font-medium">{task.title}</p>
+                      <ImportanceBadge importance={task.importance} />
                       <p className="text-xs text-white/50">
                         Due: {task.dueDate}
                       </p>
-                      <p className="text-sm text-[white]">{task.description}</p>
+                      <p className="text-sm text-[#a8a4a4]">{task.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     {
                       task.status !== 'completed' && 
-                      <button className="hover:text-emerald-400">
+                      <button className="hover:text-emerald-400 cursor-pointer">
                         <Pencil size={18} />
                       </button>
                     }
-                    <button className="hover:text-rose-400">
+                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type})} className="hover:text-rose-400 cursor-pointer">
                       <Trash2 size={18} />
                     </button>
                   </div>

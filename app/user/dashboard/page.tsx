@@ -208,7 +208,7 @@ function StatusChip({ status }: { status: TaskItem["status"] }) {
   const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
   if (status === "completed") return <span className={`${base} bg-white/8 text-green-300`}>Completed</span>;
   if (status === "inProgress") return <span className={`${base} bg-white/8 text-sky-300`}>In Progress</span>;
-  return <span className={`${base} bg-white/8 text-yellow-300`}>Pending</span>;
+  return <span className={`${base} bg-white/8 text-yellow-300`}>Pending</span>;// just a placeholder !!
 }
 
 // ---------------------------
