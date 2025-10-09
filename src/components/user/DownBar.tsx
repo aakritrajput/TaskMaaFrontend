@@ -8,7 +8,7 @@ import { RootState } from "@/src/lib/store";
 const navItems = [
   { name: "Dashboard", href: "/user/dashboard", icon: LayoutGrid },
   { name: "Tasks", href: "/user/tasks", icon: ListChecks },
-  { name: "Shared Goals", href: "/user/shared-goals", icon: Users },
+  { name: "Group Tasks", href: "/user/groupTasks", icon: Users },
   { name: "Chat", href: "/user/chat", icon: MessageSquare },
   { name: "Maa", href: "/user/maa", icon: HeartHandshake },
 ];
@@ -35,8 +35,8 @@ export default function SideOrDownBar() {
       >
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
-
+          const isActive = pathname === item.href || pathname.startsWith(item.href);
+          console.log('pathname: ', pathname, 'href: ', item.href)
           return (
             <Link
               key={item.name}
