@@ -9,6 +9,7 @@ import confetti from "canvas-confetti";
 // import axios from "axios";
 import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
+import Link from "next/link";
 
 export type taskType = {
     _id: string;
@@ -238,8 +239,8 @@ export default function TasksPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#061b1c] via-[#0b2d2f] to-[#0e4446] text-white p-6 md:p-10">
-      <div className="max-w-6xl mx-auto space-y-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-500">
+      <div className="max-w-6xl mx-auto flex flex-col items-center space-y-10">
+        <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-300">
           Your Tasks
         </h1>
 
@@ -437,9 +438,9 @@ export default function TasksPage() {
           </div>
         </div>
 
-        <p className="text-center text-emerald-400 mt-10 underline underline-offset-4 hover:text-emerald-300 cursor-pointer transition">
+        <Link href='/user/allTasks' className="text-center text-emerald-400 mt-10 underline underline-offset-4 hover:text-emerald-300 cursor-pointer w-full transition">
           See all your tasks
-        </p>
+        </Link>
       </div>
       <Modal open={isModalOpen} onClose={closeModal} initial={modalInitial} onSubmit={handleModalSubmit}/>
     </div>
