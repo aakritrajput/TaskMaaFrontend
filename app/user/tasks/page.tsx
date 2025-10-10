@@ -238,16 +238,16 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#061b1c] via-[#0b2d2f] to-[#0e4446] text-white p-6 md:p-10">
+    <div className="min-h-screen w-full bg-transparent text-white p-6 md:p-10">
       <div className="max-w-6xl mx-auto flex flex-col items-center space-y-10">
         <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-300">
           Your Tasks
         </h1>
 
-        <div className="grid md:grid-cols-2 gap-10"> {/* Here we can make a seperate component as most of the thing will be same for both daily and general but I thought why to pass extra args like today's task and different classes and that just for 2 components - hence here we have both the component code here itself */}
+        <div className="grid w-full md:grid-cols-2 gap-10"> {/* Here we can make a seperate component as most of the thing will be same for both daily and general but I thought why to pass extra args like today's task and different classes and that just for 2 components - hence here we have both the component code here itself */}
           {/* ---------------- TODAY TASKS ---------------- */}
           <div
-            className="backdrop-blur-lg relative bg-white/10 border min-h-[250px] border-white/20 rounded-2xl p-6 shadow-2xl"
+            className="backdrop-blur-lg relative bg-white/10 border w-[100%] min-h-[250px] border-white/20 rounded-2xl p-6 shadow-2xl"
           > 
             <div
               className={`absolute -top-10 -left-10 w-28 h-28 rounded-full blur-3xl opacity-30 bg-gradient-to-br from-pink-400 to-rose-500`}
