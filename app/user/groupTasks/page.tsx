@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React from 'react'
 import { useSelector } from 'react-redux';
 
-type groupTaskType = {
+export type groupTaskType = {
     _id: string;
     title: string;
     description?: string;

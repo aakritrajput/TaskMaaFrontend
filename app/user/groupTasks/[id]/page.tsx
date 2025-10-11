@@ -1,13 +1,16 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/src/lib/store';
+import { CheckCircle2 } from 'lucide-react';
+import { groupTaskType } from '../page';
 
 export default function GroupTaskPage() {
   const { id } = useParams();
 
-  // 🧩 Dummy Current User
-  const myId = 'user_2';
+  const user = useSelector((state: RootState) => state.auth.user)
+  const userId = user?._id
 
   // 🧠 Dummy Task Data
   const currentGroupTask = {
@@ -20,7 +23,7 @@ export default function GroupTaskPage() {
     dueDate: '2025-10-30',
     importance: 'high',
     status: 'ongoing',
-    winners: ['user_3', 'user_5'],
+    winners: ['user_3', 'user_5', '12345'],
   };
 
   // 👥 Dummy Members
@@ -38,13 +41,20 @@ export default function GroupTaskPage() {
     { _id: 'req_2', username: 'neha', name: 'Neha Sharma' },
   ];
 
-  const isAdmin = currentGroupTask.creatorId === myId;
+  const isAdmin = currentGroupTask.creatorId === userId;
 
   const glassClass =
     'backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-lg p-5';
+  
+  function ImportanceBadge({ importance }: { importance: groupTaskType["importance"] }) {
+    const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
+    if (importance === "high") return <span className={`${base} bg-red-600/30 text-red-200`}>High</span>;
+    if (importance === "medium") return <span className={`${base} bg-yellow-600/25 text-yellow-200`}>Medium</span>;
+    return <span className={`${base} bg-green-700/25 text-green-200`}>Low</span>;
+  }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364] text-white p-6">
+    <main className="min-h-screen bg-transparent text-white p-6">
       <section className="max-w-5xl mx-auto space-y-10">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -62,26 +72,20 @@ export default function GroupTaskPage() {
         </div>
 
         {/* Details Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+        <div
           className={glassClass}
         >
-          <p className="text-gray-200 leading-relaxed">{currentGroupTask.description}</p>
+          <p className="text-gray-200 leading-relaxed flex gap-2">{currentGroupTask.winners.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}{currentGroupTask.description}</p>
           <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-300">
-            <p>📅 <span className="font-medium">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
-            <p>⭐ <span className="font-medium">Importance:</span> {currentGroupTask.importance}</p>
-            <p>🔒 <span className="font-medium">Type:</span> {currentGroupTask.type}</p>
-            <p>📊 <span className="font-medium">Status:</span> {currentGroupTask.status}</p>
+            <p><span className="font-medium text-[#0e8bb4]">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
+            <p><span className="font-medium text-gray-400">Importance:</span> {currentGroupTask.importance}</p>
+            <p><span className="font-medium text-gray-400">Type:</span> {currentGroupTask.type}</p>
+            <p><span className="font-medium text-gray-400">Status:</span> {currentGroupTask.status}</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Members Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
           className="space-y-4"
         >
           <h2 className="text-2xl font-semibold">Group Members</h2>
@@ -103,15 +107,11 @@ export default function GroupTaskPage() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Winners or Mark Complete */}
         {currentGroupTask.status === 'completed' ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <div>
             <h2 className="text-2xl font-semibold mb-4">🏆 Winners</h2>
             <div className="flex flex-wrap gap-4">
               {currentGroupTask.winners.map((winnerId) => {
@@ -130,26 +130,18 @@ export default function GroupTaskPage() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
+          <div>
             <button className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-lg font-medium transition">
               Mark Complete from My Side
             </button>
-          </motion.div>
+          </div>
         )}
 
         {/* Requests Section (only for admin & public) */}
         {isAdmin && currentGroupTask.type === 'public' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <div>
             <h2 className="text-2xl font-semibold mb-3">Join Requests</h2>
             <div className="space-y-3">
               {joinRequests.map((req) => (
@@ -172,7 +164,7 @@ export default function GroupTaskPage() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
       </section>
     </main>
