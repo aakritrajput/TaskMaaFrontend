@@ -92,11 +92,6 @@ export default function GroupTasksPage() {
                   <div>
                     <p className="text-sm text-white/60">Importance: <ImportanceBadge importance={task.importance}/></p>
                     <p className="text-sm text-white/60">Role: <span className="text-white">{task.creatorId === user?._id ? <span className='text-[#48de9b]'>Admin</span> : <span className='text-[#a88aea]'>Participant</span>}</span></p>
-                  </div>    
-                  <div className="flex gap-2">
-                    {task.winners.length > 0 ? task.winners.slice(0, 3).map((winner, i) => (
-                      <div key={i} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs border border-white/10">{winner[0]}</div>
-                    )) : <div className="text-xs text-white/40">No winners yet</div>}
                   </div>
                 </div>
 

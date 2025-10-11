@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/src/lib/store';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Lock, LockOpen } from 'lucide-react';
 import { groupTaskType } from '../page';
 
 export default function GroupTaskPage() {
@@ -12,21 +12,21 @@ export default function GroupTaskPage() {
   const user = useSelector((state: RootState) => state.auth.user)
   const userId = user?._id
 
-  // 🧠 Dummy Task Data
+  // Dummy Task Data
   const currentGroupTask = {
     _id: id,
     title: 'Build AI-Powered Habit Tracker',
     description:
       'A collaborative challenge to build a productivity app that tracks habits and motivates users using AI-driven insights.',
     type: 'public',
-    creatorId: 'user_2',
+    creatorId: '12345',
     dueDate: '2025-10-30',
     importance: 'high',
     status: 'ongoing',
-    winners: ['user_3', 'user_5', '12345'],
+    winners: ['user_3', 'user_5', 'user_4'],
   };
 
-  // 👥 Dummy Members
+  // Dummy Members
   const members = [
     { _id: 'user_1', username: 'aakrit', name: 'Aakrit Rajput', avatar: '/avatars/aakrit.png' },
     { _id: 'user_2', username: 'komal', name: 'Komal Singh', avatar: '/avatars/komal.png' },
@@ -40,6 +40,10 @@ export default function GroupTaskPage() {
     { _id: 'req_1', username: 'ravi', name: 'Ravi Kumar' },
     { _id: 'req_2', username: 'neha', name: 'Neha Sharma' },
   ];
+
+  const taskCompletionHandler = () => {};
+  const handleTaskEnd = () => {};
+  const requestHandler = (response: 'accept' | 'reject') => { console.log(response)};
 
   const isAdmin = currentGroupTask.creatorId === userId;
 
@@ -76,14 +80,77 @@ export default function GroupTaskPage() {
           className={glassClass}
         >
           <p className="text-gray-200 leading-relaxed flex gap-2">{currentGroupTask.winners.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}{currentGroupTask.description}</p>
-          <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-300">
-            <p><span className="font-medium text-[#0e8bb4]">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
-            <p><span className="font-medium text-gray-400">Importance:</span> {currentGroupTask.importance}</p>
-            <p><span className="font-medium text-gray-400">Type:</span> {currentGroupTask.type}</p>
-            <p><span className="font-medium text-gray-400">Status:</span> {currentGroupTask.status}</p>
+          <div className="flex flex-wrap justify-between gap-5 mt-4 w-full text-sm">
+            <div className='flex flex-wrap gap-3'>
+              <p><span className="font-medium text-[#0e8bb4]">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
+              <p><span className="font-medium text-gray-400"><ImportanceBadge importance={currentGroupTask.importance as groupTaskType['importance']}/></span></p>
+            </div>
+            <div className='flex flex-wrap gap-3'>
+              <p className='text-black'>{currentGroupTask.type == 'public' ? <LockOpen/> : <Lock/>}</p>
+              <p className={`${currentGroupTask.status == 'completed' ? 'text-green-400': 'text-yellow-300'} text-2xl`}>{currentGroupTask.status == 'completed' ? 'Completed' : 'Ongoing'}</p>
+            </div>
+            
           </div>
         </div>
 
+        <div className='flex justify-between gap-2'> {/* In future we can here allow user to mark uncompleted if they accidently marked completed but for now we will show them a warning that they cannot redo this action and hence only mark as completed */}
+          <button onClick={taskCompletionHandler} disabled={currentGroupTask.winners.includes(userId ?? '') } className={`px-6 py-3 ${currentGroupTask.winners.includes(userId ?? '') ? 'cursor-not-allowed bg-gray-700 hover:bg-gray-800' : 'cursor-pointer bg-green-600 hover:bg-green-700'} rounded-xl text-lg font-medium transition`}>
+            {currentGroupTask.winners.includes(userId ?? '') ? 'Completed' : 'Mark Complete'}
+          </button>
+          {isAdmin && currentGroupTask.status == 'ongoing' && <button onClick={handleTaskEnd} className='rounded-xl text-lg font-medium bg-green-500 cursor-pointer p-4'>Finish Group Task</button>}
+        </div>
+
+        {/* Winners */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Winners 👑</h2>
+            <div className="flex gap-4 overflow-y-visible pt-9 overflow-x-auto">
+              {currentGroupTask.winners.map((winnerId, idx) => {
+                const user = members.find((m) => m._id === winnerId);
+                return (
+                  <div key={idx} className={`bg-gradient-to-l from-[#ff00004d] flex relative p-5 shadow-lg rounded-lg border-2 items-center gap-3`}>
+                    <h1 className={`absolute left-0 text-bold ${idx == 0 ? 'text-yellow-300' : idx == 1 ? 'text-gray-300' : idx == 2 ? 'text-[#9b6060]' : 'text-amber-100'} text-4xl top-[-40]`}>{idx + 1}</h1>
+                    <Image
+                      width={30}
+                      height={30}
+                      src={user?.avatar || '/profile/default_profile_pic.png'}
+                      alt={user?.name || ''}
+                      className="w-12 h-12 rounded-full border border-white/30"
+                    />
+                    <p className="font-medium">{user?.name}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Requests Section (only for admin & public) */}
+        {isAdmin && currentGroupTask.type === 'public' && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-3">Join Requests</h2>
+            <div className="space-y-3">
+              {joinRequests.map((req) => (
+                <div
+                  key={req._id}
+                  className={`${glassClass} flex gap-2 justify-between items-center`}
+                >
+                  <div>
+                    <p className="font-semibold">{req.name}</p>
+                    <p className="text-sm text-gray-300">@{req.username}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => requestHandler('accept')} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded-lg">
+                      Accept
+                    </button>
+                    <button onClick={() => requestHandler('reject')} className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-lg">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+          
         {/* Members Section */}
         <div
           className="space-y-4"
@@ -98,7 +165,7 @@ export default function GroupTaskPage() {
                 <Image
                   width={30}
                   height={30}
-                  src={member.avatar}
+                  src='/TaskMaa_AI.png'
                   alt={member.name}
                   className="w-16 h-16 mx-auto rounded-full border border-white/30 object-cover"
                 />
@@ -108,64 +175,6 @@ export default function GroupTaskPage() {
             ))}
           </div>
         </div>
-
-        {/* Winners or Mark Complete */}
-        {currentGroupTask.status === 'completed' ? (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">🏆 Winners</h2>
-            <div className="flex flex-wrap gap-4">
-              {currentGroupTask.winners.map((winnerId) => {
-                const user = members.find((m) => m._id === winnerId);
-                return (
-                  <div key={user?._id} className={`${glassClass} flex items-center gap-3`}>
-                    <Image
-                      width={30}
-                      height={30}
-                      src={user?.avatar || ''}
-                      alt={user?.name || ''}
-                      className="w-12 h-12 rounded-full border border-white/30"
-                    />
-                    <p className="font-medium">{user?.name}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <button className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-lg font-medium transition">
-              Mark Complete from My Side
-            </button>
-          </div>
-        )}
-
-        {/* Requests Section (only for admin & public) */}
-        {isAdmin && currentGroupTask.type === 'public' && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-3">Join Requests</h2>
-            <div className="space-y-3">
-              {joinRequests.map((req) => (
-                <div
-                  key={req._id}
-                  className={`${glassClass} flex justify-between items-center`}
-                >
-                  <div>
-                    <p className="font-semibold">{req.name}</p>
-                    <p className="text-sm text-gray-300">@{req.username}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded-lg">
-                      Accept
-                    </button>
-                    <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-lg">
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
     </main>
   );
