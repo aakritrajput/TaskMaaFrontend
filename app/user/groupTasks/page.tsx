@@ -1,8 +1,9 @@
 'use client'
 
+import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
 import { RootState } from '@/src/lib/store';
 import Link from 'next/link';
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux';
 
 export type groupTaskType = {
@@ -12,8 +13,8 @@ export type groupTaskType = {
     type: 'private' | 'public';
     creatorId: string;
     dueDate: string;
-    importance: 'low' | 'medium' | 'high' ;
-    status: 'ongoing' | 'completed' ;
+    importance: 'low' | 'medium' | 'high';
+    status: 'ongoing' | 'completed';
     winners: string[];
     createdAt?: string;
     updatedAt?: string;
@@ -36,6 +37,7 @@ type publicGroupTaskType = {
 
 export default function GroupTasksPage() {
     const user = useSelector((state: RootState)=> state.auth.user)
+    const [modalOpen, setModalOpen] = useState<boolean>(false)
 
     const groupTasks: groupTaskType[] = [
       {
@@ -71,7 +73,7 @@ export default function GroupTasksPage() {
         dueDate: '15-10-2025',
         type: 'private',
       }
-    ]   
+    ]
 
     const publicGroupTasks: publicGroupTaskType[] = [
       {
@@ -112,7 +114,26 @@ export default function GroupTasksPage() {
       }
     ]   
 
+    const dummyFriends = [
+      {
+      id: '12',
+      name: 'vinayak',
+      username: 'vinayak23',
+      profilePic: '',
+      isFriend: true,
+      },
+      {
+      id: '123',
+      name: 'anushka',
+      username: 'anu123',
+      profilePic: '',
+      isFriend: true,
+      },
+    ]
+
     const requestHandler = () => {}
+    const onSubmit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
+    const friends: Member[] = dummyFriends;
 
     function ImportanceBadge({ importance }: { importance: groupTaskType["importance"] }) {
         const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
@@ -127,7 +148,7 @@ export default function GroupTasksPage() {
           {/* Header Section */}
           <div className="flex items-center p-2 border-b-2 border-b-gray-600 rounded-2xl justify-between mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-teal-300 bg-clip-text text-transparent">Your Group Tasks</h2>
-            <button className="px-2 sm:px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-teal-400 shadow-lg transform hover:scale-105 transition">
+            <button onClick={() => setModalOpen(true)} className="px-2 sm:px-4 py-2 rounded-2xl cursor-pointer bg-gradient-to-r from-indigo-500 to-teal-400 shadow-lg transform hover:scale-105 transition">
               + Create
             </button>
           </div>
@@ -191,6 +212,7 @@ export default function GroupTasksPage() {
           {publicGroupTasks.length == 0 && <p className='w-full text-center text-gray-500'>There are not any public group tasks available !!</p>}
         </div>
 
+        {modalOpen && <TwoStepGroupTaskOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)} onSubmit={onSubmit} friendsList={friends}/>}
         {/* Glassmorphism style */}
         <style jsx>{`
           .glass-card {
