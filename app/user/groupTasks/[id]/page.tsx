@@ -23,7 +23,7 @@ export default function GroupTaskPage() {
     dueDate: '2025-10-30',
     importance: 'high',
     status: 'ongoing',
-    winners: ['user_3', 'user_5', 'user_4'],
+    winners: ['user_3', 'user_5','12345', 'user_4'],
   };
 
   // Dummy Members
@@ -59,7 +59,7 @@ export default function GroupTaskPage() {
 
   return (
     <main className="min-h-screen bg-transparent text-white p-6">
-      <section className="max-w-5xl mx-auto space-y-10">
+      <section className="md:px-6 mx-auto space-y-10">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-3xl font-bold">{currentGroupTask.title}</h1>
@@ -76,11 +76,9 @@ export default function GroupTaskPage() {
         </div>
 
         {/* Details Card */}
-        <div
-          className={glassClass}
-        >
-          <p className="text-gray-200 leading-relaxed flex gap-2">{currentGroupTask.winners.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}{currentGroupTask.description}</p>
-          <div className="flex flex-wrap justify-between gap-5 mt-4 w-full text-sm">
+        <div>
+          <p className="text-gray-200 leading-relaxed p-2 border-b-[1px] border-b-gray-400 flex gap-2">{currentGroupTask.winners.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}{currentGroupTask.description}</p>
+          <div className="flex flex-wrap backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-lg p-5  justify-between gap-5 mt-4 w-full text-sm">
             <div className='flex flex-wrap gap-3'>
               <p><span className="font-medium text-[#0e8bb4]">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
               <p><span className="font-medium text-gray-400"><ImportanceBadge importance={currentGroupTask.importance as groupTaskType['importance']}/></span></p>
@@ -122,6 +120,7 @@ export default function GroupTaskPage() {
               })}
             </div>
           </div>
+        {currentGroupTask.winners.includes(userId ?? '') && <h1>Your Rank: <span>{currentGroupTask.winners.indexOf(userId ?? '') + 1}</span></h1>}
 
           {/* Requests Section (only for admin & public) */}
         {isAdmin && currentGroupTask.type === 'public' && (
