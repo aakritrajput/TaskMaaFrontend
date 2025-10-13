@@ -59,18 +59,29 @@ export default function TwoStepGroupTaskOverlay({
 
   const watchedType = watch("type");
 
-  // update candidates depending on private/public
   useEffect(() => {
     if (watchedType === "public") {
-      const combined = [
-        ...friendsList,
-        ...publicMembers.filter((m) => !friendsList.some((f) => f.id === m.id)),
-      ];
-      setAllCandidates(combined);
+      setAllCandidates((prev) => {
+        const combined = [
+          ...friendsList,
+          ...publicMembers.filter((m) => !friendsList.some((f) => f.id === m.id)),
+        ];
+        // Only update if actually changed
+        const isSame =
+          prev.length === combined.length &&
+          prev.every((p, i) => p.id === combined[i].id);
+        return isSame ? prev : combined;
+      });
     } else {
-      setAllCandidates(friendsList);
+      setAllCandidates((prev) => {
+        const isSame =
+          prev.length === friendsList.length &&
+          prev.every((p, i) => p.id === friendsList[i].id);
+        return isSame ? prev : friendsList;
+      });
     }
   }, [watchedType, friendsList, publicMembers]);
+
 
   // when editData changes, reset form and members
   useEffect(() => {
