@@ -44,7 +44,8 @@ export default function TwoStepGroupTaskOverlay({
   // internal step state
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedMembers, setSelectedMembers] = useState<Member[]>(editData?.members || []);
-  const [allCandidates, setAllCandidates] = useState<Member[]>(friendsList);
+  const initialCandidates = editData?.type == 'public' ? [...friendsList, ...publicMembers] : [...friendsList]
+  const [allCandidates, setAllCandidates] = useState<Member[]>(initialCandidates);
   const [toasts, setToasts] = useState<{ id: string; text: string }[]>([]);
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<GroupTaskFormData>({
@@ -58,7 +59,7 @@ export default function TwoStepGroupTaskOverlay({
   });
 
   const watchedType = watch("type");
-
+  console.log('watchType: ', watchedType)
   useEffect(() => {
     if (watchedType === "public") {
       setAllCandidates((prev) => {
@@ -204,12 +205,12 @@ export default function TwoStepGroupTaskOverlay({
                       <label className="block text-sm text-slate-200 mb-1">Type *</label>
                       <div className="flex gap-3 items-center">
                         <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input type="radio" value="private" {...register("type")} defaultChecked className="accent-teal-400" />
+                          <input type="radio" value="private" {...register("type")} defaultChecked={editData ? editData.type == 'private' : true} className="accent-teal-400" />
                           <span className="text-sm text-slate-200">Private</span>
                         </label>
 
                         <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input type="radio" value="public" {...register("type")} className="accent-teal-400" />
+                          <input type="radio" value="public" {...register("type")} defaultChecked={editData?.type == 'public'} className="accent-teal-400" />
                           <span className="text-sm text-slate-200">Public</span>
                         </label>
                       </div>
@@ -232,15 +233,15 @@ export default function TwoStepGroupTaskOverlay({
                     <label className="block text-sm text-slate-200 mb-1">Importance</label>
                     <div className="flex gap-3 items-center">
                       <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" value="low" {...register("importance")} className="accent-teal-300" />
+                        <input type="radio" value="low" {...register("importance")} defaultChecked={editData?.importance == 'low'} className="accent-teal-300" />
                         <span className="text-sm text-slate-200">Low</span>
                       </label>
                       <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" value="medium" {...register("importance")} defaultChecked className="accent-teal-400" />
+                        <input type="radio" value="medium" {...register("importance")} defaultChecked={editData ? editData.importance == 'medium' : true} className="accent-teal-400" />
                         <span className="text-sm text-slate-200">Medium</span>
                       </label>
                       <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" value="high" {...register("importance")} className="accent-teal-500" />
+                        <input type="radio" value="high" {...register("importance")} defaultChecked={editData?.importance == 'high'} className="accent-teal-500" />
                         <span className="text-sm text-slate-200">High</span>
                       </label>
                     </div>

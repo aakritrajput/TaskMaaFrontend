@@ -5,10 +5,12 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/src/lib/store';
 import { CheckCircle2, Lock, LockOpen } from 'lucide-react';
 import { groupTaskType } from '../page';
+import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
+import { useState } from 'react';
 
 export default function GroupTaskPage() {
   const { id } = useParams();
-
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const user = useSelector((state: RootState) => state.auth.user)
   const userId = user?._id
 
@@ -26,6 +28,75 @@ export default function GroupTaskPage() {
     winners: ['user_3', 'user_5','12345', 'user_4'],
   };
 
+  const defaultData: GroupTaskFormData & { members: Member[] } = { // note: we need to make this exact data from the data we will recieve from backend ---> for editing purpose
+    title: 'Build AI-Powered Habit Tracker',
+    description:
+      'A collaborative challenge to build a productivity app that tracks habits and motivates users using AI-driven insights.',
+    type: 'public',
+    dueDate: '2025-10-30',
+    importance: 'high',
+    members: [
+      {
+        id: '12',
+        name: 'vinayak',
+        username: 'vinayak23',
+        profilePic: '',
+        isFriend: true,
+      },
+      {
+        id: '1234',
+        name: 'karan',
+        username: 'karan123',
+        profilePic: '',
+        isFriend: false,
+      },
+      {
+        id: '142',
+        name: 'komal',
+        username: 'komal23',
+        profilePic: '',
+        isFriend: false,
+      },
+    ]
+  }
+
+  const publicMembersStranger = [
+    {
+        id: '1234',
+        name: 'karan',
+        username: 'karan123',
+        profilePic: '',
+        isFriend: false,
+      },
+      {
+        id: '142',
+        name: 'komal',
+        username: 'komal23',
+        profilePic: '',
+        isFriend: false,
+      },
+  ]
+
+   const dummyFriends = [
+        {
+        id: '12',
+        name: 'vinayak',
+        username: 'vinayak23',
+        profilePic: '',
+        isFriend: true,
+        },
+        {
+        id: '123',
+        name: 'anushka',
+        username: 'anu123',
+        profilePic: '',
+        isFriend: true,
+        },
+      ]
+  
+    
+    const friends: Member[] = dummyFriends;
+
   // Dummy Members
   const members = [
     { _id: 'user_1', username: 'aakrit', name: 'Aakrit Rajput', avatar: '/avatars/aakrit.png' },
@@ -35,7 +106,7 @@ export default function GroupTaskPage() {
     { _id: 'user_5', username: 'karmi', name: 'Karmi Devi', avatar: '/avatars/karmi.png' },
   ];
 
-  // 📥 Dummy Join Requests (only for public & admin)
+  // Dummy Join Requests (only for public & admin)
   const joinRequests = [
     { _id: 'req_1', username: 'ravi', name: 'Ravi Kumar' },
     { _id: 'req_2', username: 'neha', name: 'Neha Sharma' },
@@ -44,6 +115,7 @@ export default function GroupTaskPage() {
   const taskCompletionHandler = () => {};
   const handleTaskEnd = () => {};
   const requestHandler = (response: 'accept' | 'reject') => { console.log(response)};
+  const onEdit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
 
   const isAdmin = currentGroupTask.creatorId === userId;
 
@@ -65,10 +137,10 @@ export default function GroupTaskPage() {
           <h1 className="text-3xl font-bold">{currentGroupTask.title}</h1>
           {isAdmin && (
             <div className="flex gap-3">
-              <button className="px-4 py-2 bg-blue-600 rounded-xl hover:bg-blue-700 transition">
+              <button onClick={() => setModalOpen(true)} className="px-4 py-2 cursor-pointer bg-blue-600 rounded-xl hover:bg-blue-700 transition">
                 Edit
               </button>
-              <button className="px-4 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition">
+              <button className="px-4 py-2 cursor-pointer bg-red-600 rounded-xl hover:bg-red-700 transition">
                 Delete
               </button>
             </div>
@@ -175,6 +247,7 @@ export default function GroupTaskPage() {
           </div>
         </div>
       </section>
+      {modalOpen && <TwoStepGroupTaskOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)} publicMembers={publicMembersStranger} editData={defaultData} onSubmit={onEdit} friendsList={friends}/>}
     </main>
   );
 }
