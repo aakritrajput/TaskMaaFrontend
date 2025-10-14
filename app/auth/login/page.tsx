@@ -8,8 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { login } from "@/src/lib/features/auth/AuthSlice";
-import type { User } from "@/src/lib/features/auth/AuthSlice";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { useState } from "react";
 
 interface LoginFormValues {
   email: string;
@@ -20,18 +21,22 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>();
   const dispatch = useDispatch();
   const router = useRouter();
-  const onSubmit: SubmitHandler<LoginFormValues> = (data) => {
+  const [error, setError] = useState<string>('')
+  const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
     console.log("Login Data:", data);
-    // TODO: will handle login logic
-
-    // --- now for the sake of building our UI after login we will consider a successfull login response and some data that backend will sent us 
-    const response: {status: number; data: {user: User; token:string;}} = {status: 200, data: {user: { id: '12345', name:'Aakrit'}, token:'12324324'}}
-    if (response.status != 200){
-      console.log('Cannot sign in due to some issue, crosscheck your credentials') // will provide specific error message in future
-      return ;
+    
+    try {
+      const response = await axios.post('http://localhost:5000/api/user/login', data)
+      console.log('response: ', response)
+      dispatch(login(response.data.data))
+      router.push('/user/dashboard')
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
-    dispatch(login(response.data))
-    router.push('/user/dashboard')
   };
 
   return (
@@ -63,6 +68,8 @@ export default function LoginPage() {
             {...register("password", { required: "Password is required" })}
           />
           {errors.password && <p className="text-red-400 text-sm">{errors.password.message}</p>}
+
+          {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
 
           <Button type="submit">Login</Button>
         </form>
