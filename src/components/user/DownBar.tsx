@@ -36,7 +36,6 @@ export default function SideOrDownBar() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href);
-          console.log('pathname: ', pathname, 'href: ', item.href)
           return (
             <Link
               key={item.name}

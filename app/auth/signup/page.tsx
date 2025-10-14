@@ -6,6 +6,9 @@ import Input from "@/src/components/form/Input";
 import Button from "@/src/components/form/Button";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface SignupFormValues {
   username: string;
@@ -15,12 +18,28 @@ interface SignupFormValues {
 }
 
 export default function SignupPage() {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupFormValues>();
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<SignupFormValues>();
   const passwordValue = watch("password"); // To compare with confirm password
+  const [error, setError] = useState<string>('')
 
-  const onSubmit: SubmitHandler<SignupFormValues> = (data) => {
+  const router = useRouter()
+
+  const onSubmit: SubmitHandler<SignupFormValues> = async(data) => {
     console.log("Signup Data:", data);
-    // TODO: Call backend signup API
+    try {
+      const response = await axios.post('http://localhost:5000/api/user/register', data)
+      console.log('response: ', response)
+      if(response.data == 'OK'){ // it is obvious but still for double check 😅
+        reset();
+        router.push('/auth/login')
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
+    }
   };
 
   return (
@@ -71,6 +90,8 @@ export default function SignupPage() {
             })}
           />
           {errors.confirmPassword && <p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>}
+
+          {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
 
           <Button type="submit">Sign Up</Button>
         </form>
