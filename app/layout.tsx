@@ -32,7 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="bg-gradient-to-b from-[#06161a] via-[#082a2d] to-[#06161a] pt-3">
+          <div className="bg-gradient-to-b from-[#06161a] via-[#082d2d] to-[#06161a] pt-3">
             <Navbar/>
               <SideOrDownBar/>
               {children}
