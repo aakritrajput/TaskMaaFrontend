@@ -11,7 +11,7 @@ export default function Button({ children, loading, className, ...props }: Butto
       disabled={loading}
       {...props}
     >
-      {loading ? "Loading..." : children}
+      {loading ? "Processing..." : children}
     </button>
   );
 }

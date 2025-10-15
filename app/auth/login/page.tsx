@@ -6,11 +6,12 @@ import Input from "@/src/components/form/Input";
 import Button from "@/src/components/form/Button";
 import Image from "next/image";
 import Link from "next/link";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/src/lib/features/auth/AuthSlice";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { RootState } from "@/src/lib/store";
 
 interface LoginFormValues {
   email: string;
@@ -22,20 +23,31 @@ export default function LoginPage() {
   const dispatch = useDispatch();
   const router = useRouter();
   const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
+  const user = useSelector((state: RootState) => state.auth.user)
+
+   useEffect(() => {
+    if (user) {
+      router.replace("/user/dashboard"); // replace avoids keeping login in history
+    }
+  }, [user, router]);
+
   const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
     console.log("Login Data:", data);
     
     try {
+      setLoading(true)
       const response = await axios.post('http://localhost:5000/api/user/login', data, {withCredentials: true})
       console.log('response: ', response)
       dispatch(login(response.data.data))
-      router.push('/user/dashboard')
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
       } else {
         setError("An unexpected error occurred");
       }
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -71,7 +83,7 @@ export default function LoginPage() {
 
           {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
 
-          <Button type="submit">Login</Button>
+          <Button loading={loading} type="submit">Login</Button>
         </form>
         <div className="mt-4 flex justify-between text-sm text-gray-300">
           <Link href="/auth/signup" className="text-teal-400 hover:underline cursor-pointer">
