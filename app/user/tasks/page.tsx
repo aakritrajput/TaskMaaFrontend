@@ -10,6 +10,7 @@ import confetti from "canvas-confetti";
 import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
 import Link from "next/link";
+import axios from "axios";
 
 export type taskType = {
     _id: string;
@@ -59,20 +60,19 @@ export default function TasksPage() {
   }
 
   async function handleModalSubmit(task: Partial<taskType>) {
-    closeModal();
+    closeModal(); // will imediatelly close the modal 
     if (task._id) {
+      dispatch(editTask(task as taskType)) // we will imediatelly updates the UI
       try {
-        // const response = await axios.put(`http://locahost/api/editTask/${task._id}`, task, {withCredentials: true})
-        const response = {data: task} // here we are making dummy response -- later we will instantly updates the ui and if any errorfrom backend then refreshes the page so that it syncs again !!
-        dispatch(editTask(response.data as taskType))
+        await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task, {withCredentials: true}) // and BTS it will updates the task in backend and if any error 
       } catch (error) {
-        if(error instanceof Error){
-          alert(`${error.message}, Therefore need to refresh the whole page !!`)
+        if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+          alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
         }else {
           alert("There was some Error editing your task !! - Need to refresh the whole page.. ")
         }
         window.location.reload()
-      }
+      } 
     } else {
       try {
         // this is for creating a new task as that will not be having any id !!
@@ -81,12 +81,11 @@ export default function TasksPage() {
         // NOTE: we will keep newly created tasks at the end as i should see that task on top which was firstly created !!
   
         dispatch(addTask({...task, _id: tempId} as taskType))
-        // const response = await axios.post("http://locahost:8000/api/createTask", task, {withCredentials: true})
-        const response = {data: {...task, _id: Date.now().toString()}} // faking response
-        dispatch(updateIdOfNewlyAddedTask({oldId: tempId, newId: response.data._id, type: task.type as taskType['type']}))
+        const response = await axios.post("http://localhost:5000/api/tasks/createTask", task, {withCredentials: true})
+        dispatch(updateIdOfNewlyAddedTask({oldId: tempId, newId: response.data.data._id, type: task.type as taskType['type']}))
       } catch (error) {
-        if(error instanceof Error){
-          alert(`${error.message}, Therefore need to refresh the whole page !!`)
+        if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+          alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
         }else {
           alert("There was some Error creating your task !! - Need to refresh the whole page.. ")
         }
@@ -102,23 +101,11 @@ export default function TasksPage() {
 
   useEffect(()=>{
 
-    // Dummy data (for layout only)
-    const todayTasksDummy: taskType[] = [
-      { _id: "1", user: '123',description: 'This task is very very important i have to complete it no matter what is the opportunity !', title: "Finish TaskMaa UI", status: "inProgress", importance: "high" , type: 'daily', dueDate: (new Date()).toISOString()},
-      { _id: "2", user: '123', title: "Revise ML course", status: "completed", importance: "medium" , type: 'daily', dueDate: (new Date()).toISOString()},
-    ];
-  
-    const generalTasksDummy:taskType[] = [
-      { _id:"3", user: "123", title: "Prepare portfolio update", dueDate: '10-10-2025', status: "inProgress", importance: "medium" , type: 'general'},
-      { _id:"4", user: "123", title: "Complete BlogApp bug fix", dueDate: '10-10-2025', status: "completed", importance: "medium" , type: 'general',},
-    ];
-
     if(dailyTasksStatus == 'Loading'){
       async function getTodaysTasks(){
         try {
-          // const response = await axios.get('http://localhost:8000/api/getDailyTasks', {withCredentials: true});
-          const response = {data: todayTasksDummy} // faking for now 
-          dispatch(addDailyTasks(response.data));
+          const response = await axios.get('http://localhost:5000/api/tasks/todaysTask', {withCredentials: true});
+          dispatch(addDailyTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingDailyTasks())
           console.log('Error getting todays tasks: ', error);
@@ -129,9 +116,8 @@ export default function TasksPage() {
     if(generalTaskStatus == 'Loading'){
       async function getGeneralTasks(){
         try {
-          // const response = await axios.get('http://localhost:8000/api/getGeneralTasks', {withCredentials: true});
-          const response = {data: generalTasksDummy} // faking for now !!
-          dispatch(addGeneralTasks(response.data));
+          const response = await axios.get('http://localhost:5000/api/tasks/generalTasks', {withCredentials: true});
+          dispatch(addGeneralTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingDailyTasks())
           console.log('Error getting todays tasks: ', error);
@@ -190,20 +176,18 @@ export default function TasksPage() {
   const taskStatusToggleHandler = async(task: taskType) => {
     console.log('btn clicked')
     try {
-      // const response = await axios.put(`http://localhost:8000/api/editTask/${task._id}`,task , {withCredentials: true})
-      const response = {status:'OK'};
-      if (response.status == 'OK') {
-        dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
-      }
+      dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
       if(task.status == 'completed'){
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
         else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav')
         showConfetti();
       }else playSound('/sounds/incompleteTaskSound.wav')
 
+      await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task , {withCredentials: true})
+      
     } catch (error) {
-      if(error instanceof Error){
-        alert(`${error.message}, Therefore need to refresh the whole page !!`)
+      if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+          alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
       }else {
         alert("There was some Error toggling your task status !! - Need to refresh the whole page.. ")
       }
@@ -213,14 +197,11 @@ export default function TasksPage() {
 
   const deleteTaskHandler = async(task: {_id: string, type: 'daily' | 'general'}) => {
     try {
-       // const response = await axios.delete(`http://localhost:8000/api/deleteTask/${task._id}`, {withCredentials: true})
-      const response = {status:'OK'};
-      if (response.status == 'OK') {
-        dispatch(deleteTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
-      }
+      dispatch(deleteTask(task))
+      await axios.delete(`http://localhost:5000/api/tasks/deleteTask/${task._id}`, {withCredentials: true})
     } catch (error) {
-      if(error instanceof Error){
-        alert(`${error.message}, Therefore need to refresh the whole page !!`)
+      if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+        alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
       }else {
         alert("There was some Error deleting your task !! - Need to refresh the whole page.. ")
       }
@@ -288,6 +269,10 @@ export default function TasksPage() {
                 {/* Shimmer overlay */}
                 <div className="absolute w-full h-[100px] -rotate-45 bg-gradient-to-br from-pink-400 via-white/30 to-white/10 animate-shimmer"></div>
               </div>
+              :
+
+              dailyTasksStatus == 'Error' ? 
+              <div className=" bg-transparent flex justify-center text-center min-h-[40px] items-center">There was some Error in loading your daily tasks...</div> 
               :
               <>
               {filterTasks(todayTasks, activeTodayFilter).map((task) => (
@@ -382,6 +367,9 @@ export default function TasksPage() {
                 {/* Shimmer overlay */}
                 <div className="absolute w-full h-[100px] rotate-45 bg-gradient-to-br from-yellow-400 via-white/30 to-white/10 rounded-2xl animate-shimmer"></div>
               </div>
+              :
+              generalTaskStatus == 'Error' ? 
+              <div className=" bg-transparent flex justify-center text-center min-h-[40px] items-center">There was some Error in loading your General tasks...</div> 
               :
               <>
               {filterTasks(generalTasks, activeGeneralFilter).map((task) => (

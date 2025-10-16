@@ -20,7 +20,7 @@ export default function Modal({ open, onClose, initial, onSubmit }: modalParamTy
     setTitle(initial?.title || "");
     setDescription(initial?.description || "");
     setImportance(initial?.importance || "low");
-    setDueDate(initial?.dueDate ? initial.dueDate : "");
+    setDueDate(initial?.dueDate ? initial.dueDate.slice(0, 10) : "");
   }, [initial]);
 
   if (!open) return null;
