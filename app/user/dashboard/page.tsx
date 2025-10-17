@@ -1,6 +1,11 @@
 "use client";
 
-import React from "react";
+import { addLeaderBoard, addPerformance, errorGettingLeaderBoard, errorGettingPerformance } from "@/src/lib/features/stats/statSlice";
+import { addDailyTasks, addGeneralTasks, errorGettingDailyTasks, errorGettingGeneralTasks } from "@/src/lib/features/tasks/TaskSlice";
+import { RootState } from "@/src/lib/store";
+import axios from "axios";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   XAxis,
   YAxis,
@@ -18,17 +23,14 @@ import {
 // Types
 // ---------------------------
 
-type StatsFromBackend = {
-  userId: string;
-  profileType: "public" | "private";
-  dailyTasksCompleted: number;
-  generalTasksCompleted: number;
-  totalDailyTasks: number;
-  totalGeneralTasks: number;
-  streak: number;
-  overallScore: number; // 0-100
-  badges: string[];
-};
+// type PerformanceType = {
+//   currentStreak: number;
+//   longestStreak: number;
+//   overallScore: number;
+//   weeklyProgress: number[];
+//   lastStreakOn: string;
+//   badges: string[];
+// };
 
 type TaskItem = {
   user: string;
@@ -40,125 +42,28 @@ type TaskItem = {
   dueDate: string; // ISO date or human
 };
 
-type LeaderboardRaw = {
-  userId: {
-    _id: string;
-    userName: string;
-    profilePic?: string; // url
-  };
-  overallScore: number;
-};
+// type LeaderboardType = {
+//   userName: string;
+//   profilePicture?: string; // url
+//   overallScore: number;
+// };
 
-// ---------------------------
-// Dummy data (will replace with Redux selectors or from backend !!)
-// ---------------------------
-const statsFromBackend: StatsFromBackend = {
-  userId: "u_123",
-  profileType: "public",
-  dailyTasksCompleted: 3,
-  generalTasksCompleted: 7,
-  totalDailyTasks: 5,
-  totalGeneralTasks: 10,
-  streak: 12,
-  overallScore: 78,
-  badges: ["early-bird", "streak-7"],
-};
-
-const tasksFromBackend: TaskItem[] = [
-  {
-    user: "u_123",
-    title: "Morning meditation",
-    description: "10 mins breathing",
-    importance: "low",
-    status: "completed",
-    type: "daily",
-    dueDate: new Date().toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Implement login guard",
-    description: "Protect admin routes",
-    importance: "high",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-  {
-    user: "u_123",
-    title: "Write unit tests",
-    description: "Auth and utils",
-    importance: "medium",
-    status: "inProgress",
-    type: "general",
-    dueDate: new Date(Date.now() + 3 * 86400_000).toISOString(),
-  },
-];
-
-const leaderboardFromBackend: LeaderboardRaw[] = [
-  {
-    userId: { _id: "u_1", userName: "komal_dev", profilePic: "" },
-    overallScore: 980,
-  },
-  {
-    userId: { _id: "u_2", userName: "karan_codes", profilePic: "" },
-    overallScore: 860,
-  },
-  {
-    userId: { _id: "u_3", userName: "anjana_mom", profilePic: "" },
-    overallScore: 650,
-  },
-];
-
-// ---------------------------
 // Helpers
-// ---------------------------
-const totalTasksCompleted = (s: StatsFromBackend) => Number(s.dailyTasksCompleted) + Number(s.generalTasksCompleted);
-const totalTasks = (s: StatsFromBackend) => Number(s.totalDailyTasks) + Number(s.totalGeneralTasks);
+
+const totalTasksCompletedPercentage = (tasks: TaskItem[]) => {
+  const total = tasks.length;
+  if (total === 0) return 0;
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  return Math.round((completedTasks / total) * 100);
+}
+
+const getTotalAndCompletedTasks = (tasks: TaskItem[]) => {
+  const total = tasks.length;
+  if(total == 0) return [0,0];
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  return [total, completedTasks] ;
+}
+
 
 const shortDate = (iso?: string) => {
   if (!iso) return "—";
@@ -166,37 +71,29 @@ const shortDate = (iso?: string) => {
   return d.toLocaleDateString();
 };
 
-// ---------------------------
-// Chart data
-// ---------------------------
-const weeklyActivity = [
-  { day: "Mon", tasks: 5 },
-  { day: "Tue", tasks: 8 },
-  { day: "Wed", tasks: 6 },
-  { day: "Thu", tasks: 10 },
-  { day: "Fri", tasks: 12 },
-  { day: "Sat", tasks: 7 },
-  { day: "Sun", tasks: 4 },
-];
 
+// Chart data functions
 
-const completed = totalTasksCompleted(statsFromBackend);
-console.log("comleted: ", completed)
-const total = totalTasks(statsFromBackend);
-console.log('total: ', total)
-const statusPie = [  // in future we can enhance this by seperating the status pie's of both daily and general tasks !! -- but for now we will account both of them together..
-  { name: "Completed", value: completed },
-  { name: "InProgress", value: total - completed }
-];
+function getLast7Days() {
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const todayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday ...
 
-console.log("Status Pie: ", statusPie)
+  const last7Days = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const index = (todayIndex - i + 7) % 7; // ensures wrap-around
+    last7Days.push(days[index]);
+  }
+
+  return last7Days;
+}
+
+const last7Days = getLast7Days();
 
 const COLORS = ["#34D399", "#F87171"];
 
-
-// ---------------------------
 // Small presentational components
-// ---------------------------
+
 function ImportanceBadge({ importance }: { importance: TaskItem["importance"] }) {
   const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
   if (importance === "high") return <span className={`${base} bg-red-600/30 text-red-200`}>High</span>;
@@ -216,14 +113,101 @@ function StatusChip({ status }: { status: TaskItem["status"] }) {
 // ---------------------------
 
 export default function TaskMaaDashboard() {
-  // Will Replace with real selectors:
-  // const stats = useSelector((s: RootState) => s.stats);
-  // const tasks = useSelector((s: RootState) => s.tasks.todayAndGeneral);
-  // const leaderboard = useSelector((s: RootState) => s.leaderboard.topUsers);
 
-  const stats = statsFromBackend;
-  const tasks = tasksFromBackend;
-  const leaderboard = leaderboardFromBackend;
+  const stats = useSelector((state: RootState) => state.stats);
+  console.log(stats)
+  const performance = stats.performance;
+  const performanceStatus = stats.performanceStatus;
+  const leaderboard = stats.leaderBoard;
+  const leaderboardStatus = stats.leaderBoardStatus;
+
+  const weeklyActivity = last7Days.map((day, index) => ({
+    day: day,
+    tasks: performance ? performance.weeklyProgress[index] : 0, // fallback if missing
+  }));
+
+  // tasks 
+
+  const TaskState = useSelector((state: RootState) => state.tasks)
+  const dailyTasksStatus = TaskState.dailyTasksStatus ;
+  const generalTaskStatus = TaskState.generalTasksStatus ;
+  const dailyTasks = TaskState.dailyTasks ;
+  const generalTasks = TaskState.generalTasks ;
+
+  const dispatch = useDispatch();
+
+  // status pie
+
+  const [total, completed] = getTotalAndCompletedTasks([...dailyTasks, ...generalTasks])
+  const statusPie = [  // in future we can enhance this by seperating the status pie's of both daily and general tasks !! -- but for now we will account both of them together..
+    { name: "Completed", value: completed },
+    { name: "InProgress", value: total - completed }
+  ];
+
+  const hasFetched = useRef({
+    daily: false, 
+    general: false,
+    leaderboard: false,
+    performance: false,
+  });
+  
+  useEffect(()=>{
+    console.log('useEffect runs again !')
+    // these task calls are also there in tasks page 
+    if(dailyTasksStatus == 'Loading' && !hasFetched.current.daily){
+      async function getTodaysTasks(){
+        try {
+          hasFetched.current.daily = true;
+          const response = await axios.get('http://localhost:5000/api/tasks/todaysTask', {withCredentials: true});
+          dispatch(addDailyTasks(response.data.data));
+        } catch (error) {
+          dispatch(errorGettingDailyTasks())
+          console.log('Error getting todays tasks: ', error);
+        }
+      }
+      getTodaysTasks();
+    }
+    if(generalTaskStatus == 'Loading' && !hasFetched.current.general){
+      async function getGeneralTasks(){
+        try {
+          hasFetched.current.general = true;
+          const response = await axios.get('http://localhost:5000/api/tasks/generalTasks', {withCredentials: true});
+          dispatch(addGeneralTasks(response.data.data));
+        } catch (error) {
+          dispatch(errorGettingGeneralTasks())
+          console.log('Error getting todays tasks: ', error);
+        }
+      }
+      getGeneralTasks();
+    }
+
+    if(performanceStatus == 'Loading' && !hasFetched.current.performance){
+      async function getPerformance(){
+        try {
+          hasFetched.current.performance = true;
+          const response = await axios.get('http://localhost:5000/api/dashboard/getPerformanceStats', {withCredentials: true});
+          dispatch(addPerformance(response.data.data));
+        } catch (error) {
+          dispatch(errorGettingPerformance())
+          console.log('Error getting todays tasks: ', error);
+        }
+      }
+      getPerformance()
+    }
+    if(leaderboardStatus == 'Loading' && !hasFetched.current.leaderboard){
+      async function getLeaderBoard(){
+        try {
+          hasFetched.current.leaderboard = true;
+          const response = await axios.get('http://localhost:5000/api/dashboard/leaderboard', {withCredentials: true});
+          dispatch(addLeaderBoard(response.data.data));
+        } catch (error) {
+          dispatch(errorGettingLeaderBoard())
+          console.log('Error getting todays tasks: ', error);
+        }
+      }
+      getLeaderBoard()
+    }
+  }, [dailyTasksStatus, dispatch, generalTaskStatus, leaderboardStatus, performanceStatus])
 
   return (
     <main className="min-h-screen p-6 bg-gradient-to-b from-[#06161a] via-[#082a2d] to-[#06161a] text-white">
@@ -245,28 +229,52 @@ export default function TaskMaaDashboard() {
         <section className="mb-6">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
             <div className="col-span-1 flex items-center justify-center">
-             <div className="flex flex-col items-center">
-              <div className="text-sm text-center text-white/60">Tasks Completed</div>
-              <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-sky-300 drop-shadow-lg">{totalTasksCompleted(stats)}</div>
-              <div className="text-xs text-white/60">Daily {stats.dailyTasksCompleted} • General {stats.generalTasksCompleted}</div>
-             </div>
+              {
+                performanceStatus == 'Loading' ? 
+                <div></div>
+                :
+                performanceStatus == 'Fetched' ? 
+                <div className="flex flex-col items-center">
+                 <div className="text-sm text-center text-white/60">Tasks Completed</div>
+                 <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-sky-300 drop-shadow-lg">{totalTasksCompletedPercentage(dailyTasks)} %</div>
+                 <div className="text-xs text-white/60">Daily Tasks</div>
+                </div>
+                :
+                <div className="flex justify-center items-center p-2">Error</div>
+              }
             </div>
 
             <div className="col-span-1 flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                <div className="text-sm text-white/60">Overall Score</div>
-                <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-300 to-emerald-300 drop-shadow-lg">{stats.overallScore}%</div>
-                <div className="text-xs text-white/60">Performance index</div>
-              </div>
+              {
+                performanceStatus == 'Loading' ? 
+                <div></div>
+                :
+                performanceStatus == 'Fetched' ? 
+                <div className="flex flex-col items-center">
+                  <div className="text-sm text-white/60">Overall Score</div>
+                  <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-300 to-emerald-300 drop-shadow-lg">{performance?.overallScore}</div>
+                  <div className="text-xs text-white/60">Performance index</div>
+                </div>
+                :
+                <div className="flex justify-center items-center p-2">Error</div>
+              }
             </div>
 
             {/* third stat: spans both cols on mobile and centered */}
             <div className="col-span-2 md:col-span-1 flex justify-center">
-              <div className="flex flex-col items-center">
-                <div className="text-sm text-white/60">Current Streak</div>
-                <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-emerald-300 drop-shadow-lg">{stats.streak} 🔥</div>
-                <div className="text-xs text-white/60">Keep it going — small wins!</div>
-              </div>
+              {
+                performanceStatus == 'Loading' ? 
+                <div></div>
+                :
+                performanceStatus == 'Fetched' ? 
+                <div className="flex flex-col items-center">
+                  <div className="text-sm text-white/60">Current Streak</div>
+                  <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-emerald-300 drop-shadow-lg">{performance?.currentStreak} 🔥</div>
+                  <div className="text-xs text-white/60">Longest Streak: {performance?.longestStreak}</div>
+                </div>
+                :
+                <div className="flex justify-center items-center p-2">Error</div>
+              }
             </div>
           </div>
         </section>
@@ -285,12 +293,16 @@ export default function TaskMaaDashboard() {
                   <h3 className="text-lg font-semibold">Daily Tasks</h3>
                   <p className="text-sm text-white/60">Tasks due today</p>
                 </div>
-                <div className="text-sm text-white/60">{tasks.filter((t) => t.type === "daily").length} items</div>
+                <div className="text-sm text-white/60">{dailyTasks ? dailyTasks.length : 0} items</div>
               </div>
 
               <div className="scrollable-div max-h-[75vh] md:max-h-[50vh]">
-                {tasks
-                  .filter((t) => t.type === "daily")
+                {
+                dailyTasksStatus == 'Loading' ? 
+                <div className="text-center w-full p-2 text-gray-500">Loading..</div>
+                  :
+                dailyTasksStatus == 'Fetched' ?
+                dailyTasks
                   .map((t, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-white/3">
                       <div className="flex items-start gap-3">
@@ -306,7 +318,12 @@ export default function TaskMaaDashboard() {
                         <StatusChip status={t.status} />
                       </div>
                     </div>
-                  ))}
+                  ))
+                :
+                <div className="text-center w-full p-2 text-gray-500">
+                  Error.. 
+                </div>
+                }
               </div>
             </div>
 
@@ -317,12 +334,16 @@ export default function TaskMaaDashboard() {
                   <h3 className="text-lg font-semibold">General Tasks</h3>
                   <p className="text-sm text-white/60">Other due items</p>
                 </div>
-                <div className="text-sm text-white/60">{tasks.filter((t) => t.type === "general").length} items</div>
+                <div className="text-sm text-white/60">{generalTasks.length} items</div>
               </div>
 
               <div className="scrollable-div max-h-[75vh] md:max-h-[50vh]">
-                {tasks
-                  .filter((t) => t.type === "general")
+                {
+                generalTaskStatus == 'Loading' ? 
+                <div className="text-center w-full p-2 text-gray-500">Loading..</div>
+                  :
+                generalTaskStatus == 'Fetched' ?
+                generalTasks
                   .map((t, idx) => (
                     <div key={idx} className="flex mt-3 items-center justify-between p-3 rounded-lg bg-white/3">
                       <div className="flex items-start gap-3">
@@ -336,7 +357,12 @@ export default function TaskMaaDashboard() {
                         <ImportanceBadge importance={t.importance} />
                       </div>
                     </div>
-                  ))}
+                  ))
+                :
+                <div className="text-center w-full p-2 text-gray-500">
+                  Error.. 
+                </div>
+                }
               </div>
             </div>
           </section>
@@ -392,20 +418,36 @@ export default function TaskMaaDashboard() {
              <h3 className="text-lg font-semibold">Leaderboard</h3>
              <div className="text-sm text-white/60">Top performers</div>
            </div> 
-           <div className="mt-4 space-y-3">
-             {leaderboard.map((l, idx) => (
-               <div key={l.userId._id} className={`flex items-center gap-5 justify-between p-3 rounded-lg ${idx < 3 ? "bg-gradient-to-r from-yellow-400/10 to-green-400/8" : "bg-white/3"}`}>
+           {
+            leaderboardStatus == 'Loading' ? 
+            <div className="flex text-center p-2 justify-center items-start">
+              Loading...
+            </div>
+            :
+            leaderboardStatus == 'Fetched' ? 
+            <div className="mt-4 space-y-3">
+             {leaderboard && leaderboard.length > 0 ? leaderboard?.map((l, idx) => (
+               <div key={l._id} className={`flex items-center gap-5 justify-between p-3 rounded-lg ${idx < 3 ? "bg-gradient-to-r from-yellow-400/10 to-green-400/8" : "bg-white/3"}`}>
                  <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-green-400 flex items-center justify-center text-sm font-semibold">{l.userId.userName.split("_")[0][0].toUpperCase()}</div>
+                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-green-400 flex items-center justify-center text-sm font-semibold">{l.userName}</div>
                    <div>
-                     <div className="font-medium">{l.userId.userName}</div>
+                     <div className="font-medium">{l.userName}</div>
                      <div className="text-xs text-white/60">Score: {l.overallScore}</div>
                    </div>
                  </div>
                  <div className="text-sm font-semibold">{l.overallScore}</div>
                </div>
-             ))}
+             ))
+             :
+             <div className="text-gray-500 flex items-start justify-center text-center p-2">No users on leaderBoard..</div>
+            }
            </div>
+           :
+           <div className="flex w-full justify-center text-center items-start p-2">
+            There was some Error getting Leaderboard...
+           </div>
+           }
+           
          </aside>
         </div>
         <footer className="mt-6 text-center text-sm text-white/60">Keep going — Maa is proud of you 💚</footer>
