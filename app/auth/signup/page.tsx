@@ -21,15 +21,15 @@ export default function SignupPage() {
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<SignupFormValues>();
   const passwordValue = watch("password"); // To compare with confirm password
   const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
 
   const router = useRouter()
 
   const onSubmit: SubmitHandler<SignupFormValues> = async(data) => {
-    console.log("Signup Data:", data);
+    setLoading(true)
     try {
       const response = await axios.post('http://localhost:5000/api/user/register', data)
-      console.log('response: ', response)
-      if(response.data == 'OK'){ // it is obvious but still for double check 😅
+      if(response.data.data == 'OK'){ // it is obvious but still for double check 😅
         reset();
         router.push('/auth/login')
       }
@@ -39,6 +39,8 @@ export default function SignupPage() {
       } else {
         setError("An unexpected error occurred");
       }
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -93,7 +95,7 @@ export default function SignupPage() {
 
           {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
 
-          <Button type="submit">Sign Up</Button>
+          <Button loading={loading} type="submit">Sign Up</Button>
         </form>
 
         <div className="mt-4 flex justify-center text-sm text-gray-300">
