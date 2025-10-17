@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pencil, Trash2, CheckCircle2, CheckCircle, PlusCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 import confetti from "canvas-confetti";
 // import axios from "axios";
-import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
+import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, errorGettingGeneralTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
 import Link from "next/link";
 import axios from "axios";
+// import { editPerformance } from "@/src/lib/features/stats/statSlice";
 
 export type taskType = {
     _id: string;
@@ -21,11 +22,13 @@ export type taskType = {
     status: "inProgress"| "completed";
     type: "daily" | "general" ;
     dueDate: string;
+    completedOn: string | undefined;
 }
 
 export default function TasksPage() {
   const [activeTodayFilter, setActiveTodayFilter] = useState("All");
   const [activeGeneralFilter, setActiveGeneralFilter] = useState("All");
+  const [totalCompletedTasks, setTotalCompletedTasks] = useState<number>(0)
 
   const dispatch = useDispatch();
 
@@ -35,6 +38,8 @@ export default function TasksPage() {
   const generalTaskStatus = TaskState.generalTasksStatus ;
   const todayTasks = TaskState.dailyTasks ;
   const generalTasks = TaskState.generalTasks ;
+
+  const performance = useSelector((state: RootState) => state.stats.performance);
 
   // stuff for creating and editing the task
 
@@ -96,14 +101,20 @@ export default function TasksPage() {
   }
   
 
+  
+  const hasFetched = useRef({
+    daily: false, 
+    general: false,
+  });
 
   //------  api call and data hydration ------
 
   useEffect(()=>{
 
-    if(dailyTasksStatus == 'Loading'){
+    if(dailyTasksStatus == 'Loading' && !hasFetched.current.daily){
       async function getTodaysTasks(){
         try {
+          hasFetched.current.daily = true;
           const response = await axios.get('http://localhost:5000/api/tasks/todaysTask', {withCredentials: true});
           dispatch(addDailyTasks(response.data.data));
         } catch (error) {
@@ -113,20 +124,29 @@ export default function TasksPage() {
       }
       getTodaysTasks();
     }
-    if(generalTaskStatus == 'Loading'){
+    if(generalTaskStatus == 'Loading' && !hasFetched.current.general){
       async function getGeneralTasks(){
         try {
+          hasFetched.current.general = true;
           const response = await axios.get('http://localhost:5000/api/tasks/generalTasks', {withCredentials: true});
           dispatch(addGeneralTasks(response.data.data));
         } catch (error) {
-          dispatch(errorGettingDailyTasks())
+          dispatch(errorGettingGeneralTasks())
           console.log('Error getting todays tasks: ', error);
         }
       }
       getGeneralTasks();
     }
 
-  }, [generalTaskStatus, dispatch, dailyTasksStatus]);
+    const getTodaysCompletedTasks = (tasks: taskType[]) => {
+      console.log('tasks: ', tasks)
+      const count = tasks.filter(task => task.completedOn ? (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10) : false).length ; // it will be true for tasks which are completed today itself
+      setTotalCompletedTasks(count);
+    }
+
+    getTodaysCompletedTasks([...todayTasks, ...generalTasks])
+
+  }, [generalTaskStatus, dispatch, dailyTasksStatus, todayTasks, generalTasks]); // here we have added today and general tasks here which is fine a our api calls will only run on loading condition
 
   // ------------ helper functions ----------------
 
@@ -173,15 +193,34 @@ export default function TasksPage() {
     })();
   };
 
+  console.log('default completed task: ', totalCompletedTasks)
+
   const taskStatusToggleHandler = async(task: taskType) => {
-    console.log('btn clicked')
+    
     try {
+      if(task.status == 'completed'){
+        task.completedOn = new Date().toISOString()
+      }
+      else {
+        task.completedOn = undefined;
+      }
+      console.log('task going in store: ',task)
       dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
+      console.log('completed task after setting in store', totalCompletedTasks)
       if(task.status == 'completed'){
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
         else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav')
         showConfetti();
       }else playSound('/sounds/incompleteTaskSound.wav')
+
+      if(performance && totalCompletedTasks == 0) { // if a task pass this check that means the user does not have till now any completed task for today which means here we can call backend to update streak
+        await axios.get('http://localhost:5000/api/dashboard/updateStreak/add', {withCredentials: true})
+      }
+      else if(task.status == 'inProgress' && totalCompletedTasks == 1){ // this will mean user is marking a completed task as uncompleted
+        if(task.completedOn && (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
+          await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
+        }
+      }
 
       await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task , {withCredentials: true})
       
@@ -195,9 +234,14 @@ export default function TasksPage() {
     }
   }
 
-  const deleteTaskHandler = async(task: {_id: string, type: 'daily' | 'general'}) => {
+  const deleteTaskHandler = async(task: {_id: string, type: 'daily' | 'general', status: 'completed' | 'inProgress', completedOn: string | undefined}) => {
     try {
       dispatch(deleteTask(task))
+      if(totalCompletedTasks == 1 && task.status == 'completed'){
+        if(task.completedOn && (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
+          await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
+        }
+      }
       await axios.delete(`http://localhost:5000/api/tasks/deleteTask/${task._id}`, {withCredentials: true})
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
@@ -206,6 +250,15 @@ export default function TasksPage() {
         alert("There was some Error deleting your task !! - Need to refresh the whole page.. ")
       }
       window.location.reload()
+    }
+  }
+
+  const deleteAccount = async() => {
+    try {
+      const response = await axios.delete('http://localhost:5000/api/user/delete', {withCredentials: true})
+      console.log(response)
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -224,6 +277,7 @@ export default function TasksPage() {
         <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-300">
           Your Tasks
         </h1>
+        <button onClick={deleteAccount}>Delete acccount</button>
 
         <div className="grid w-full md:grid-cols-2 gap-10"> {/* Here we can make a seperate component as most of the thing will be same for both daily and general but I thought why to pass extra args like today's task and different classes and that just for 2 components - hence here we have both the component code here itself */}
           {/* ---------------- TODAY TASKS ---------------- */}
@@ -310,7 +364,7 @@ export default function TasksPage() {
                         <Pencil size={18} />
                       </button>
                     }
-                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type})} className="hover:text-rose-400 cursor-pointer">
+                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type, status: task.status, completedOn: task.completedOn})} className="hover:text-rose-400 cursor-pointer">
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -411,7 +465,7 @@ export default function TasksPage() {
                         <Pencil size={18} />
                       </button>
                     }
-                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type})} className="hover:text-rose-400 cursor-pointer">
+                    <button onClick={() => deleteTaskHandler({_id: task._id, type: task.type, status: task.status, completedOn: task.completedOn})} className="hover:text-rose-400 cursor-pointer">
                       <Trash2 size={18} />
                     </button>
                   </div>
