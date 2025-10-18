@@ -115,7 +115,6 @@ function StatusChip({ status }: { status: TaskItem["status"] }) {
 export default function TaskMaaDashboard() {
 
   const stats = useSelector((state: RootState) => state.stats);
-  console.log(stats)
   const performance = stats.performance;
   const performanceStatus = stats.performanceStatus;
   const leaderboard = stats.leaderBoard;
@@ -152,7 +151,6 @@ export default function TaskMaaDashboard() {
   });
   
   useEffect(()=>{
-    console.log('useEffect runs again !')
     // these task calls are also there in tasks page 
     if(dailyTasksStatus == 'Loading' && !hasFetched.current.daily){
       async function getTodaysTasks(){

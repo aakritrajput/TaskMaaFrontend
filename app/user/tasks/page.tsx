@@ -11,7 +11,7 @@ import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGet
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
 import Link from "next/link";
 import axios from "axios";
-import { updateStreak } from "@/src/lib/features/stats/statSlice";
+import { addPerformance, errorGettingPerformance, updateStreak, updateWeeklyProgress } from "@/src/lib/features/stats/statSlice";
 // import { editPerformance } from "@/src/lib/features/stats/statSlice";
 
 export type taskType = {
@@ -39,8 +39,9 @@ export default function TasksPage() {
   const generalTaskStatus = TaskState.generalTasksStatus ;
   const todayTasks = TaskState.dailyTasks ;
   const generalTasks = TaskState.generalTasks ;
-
-  const performance = useSelector((state: RootState) => state.stats.performance);
+  const stats = useSelector((state: RootState) => state.stats);
+  const performance = stats.performance;
+  const performanceStatus = stats.performanceStatus;
 
   // stuff for creating and editing the task
 
@@ -106,6 +107,7 @@ export default function TasksPage() {
   const hasFetched = useRef({
     daily: false, 
     general: false,
+    performance: false,
   });
 
   //------  api call and data hydration ------
@@ -139,15 +141,28 @@ export default function TasksPage() {
       getGeneralTasks();
     }
 
+     if(performanceStatus == 'Loading' && !hasFetched.current.performance){ // as in tasks page we are marking complete uncomplete therefore need to start redux state there too !!
+      async function getPerformance(){
+        try {
+          hasFetched.current.performance = true;
+          const response = await axios.get('http://localhost:5000/api/dashboard/getPerformanceStats', {withCredentials: true});
+          dispatch(addPerformance(response.data.data));
+        } catch (error) {
+          dispatch(errorGettingPerformance())
+          console.log('Error getting todays tasks: ', error);
+        }
+      }
+      getPerformance()
+    }
+
     const getTodaysCompletedTasks = (tasks: taskType[]) => {
-      console.log('tasks: ', tasks)
       const count = tasks.filter(task => task.completedOn ? (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10) : false).length ; // it will be true for tasks which are completed today itself
       setTotalCompletedTasks(count);
     }
 
     getTodaysCompletedTasks([...todayTasks, ...generalTasks])
 
-  }, [generalTaskStatus, dispatch, dailyTasksStatus, todayTasks, generalTasks]); // here we have added today and general tasks here which is fine a our api calls will only run on loading condition
+  }, [generalTaskStatus, dispatch, dailyTasksStatus, todayTasks, generalTasks, performanceStatus]); // here we have added today and general tasks here which is fine a our api calls will only run on loading condition
 
   // ------------ helper functions ----------------
 
@@ -194,8 +209,6 @@ export default function TasksPage() {
     })();
   };
 
-  console.log('default completed task: ', totalCompletedTasks)
-
   const taskStatusToggleHandler = async(task: taskType) => {
     const defaultTask = {...task} ;
     try {
@@ -205,9 +218,7 @@ export default function TasksPage() {
       else {
         task.completedOn = '';
       }
-      console.log('task going in store: ',task)
       dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
-      console.log('completed task after setting in store', totalCompletedTasks)
       if(task.status == 'completed'){
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
         else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav');
@@ -219,19 +230,21 @@ export default function TasksPage() {
         await axios.get('http://localhost:5000/api/dashboard/updateStreak/add', {withCredentials: true})
       }
       else if(task.status == 'inProgress' && totalCompletedTasks == 1){ // this will mean user is marking a completed task as uncompleted
-        console.log('1st runs in streak removal !!')
-        console.log('task.completedOn: ', task.completedOn)
-        console.log('(defaultTask.completedOn).slice(0,10) : ', (defaultTask.completedOn).slice(0,10))
-        console.log('new Date().toISOString().slice(0, 10) : ',new Date().toISOString().slice(0, 10))
         if(!task.completedOn && (defaultTask.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
-          console.log('streak removal runs !!')
           dispatch(updateStreak('remove'));
           await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
         }
       }
 
-      console.log('task sending from frontend: ', task)
-      await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task , {withCredentials: true})
+      const weeklyData = [...(performance?.weeklyProgress || [0,0,0,0,0,0,0])];
+      if(task.status == 'completed'){
+        dispatch(updateWeeklyProgress('completed'))
+        weeklyData[weeklyData.length - 1] = weeklyData[weeklyData.length - 1] + 1;
+      }else if(task.status == 'inProgress' && defaultTask.completedOn.slice(0,10) == new Date().toISOString().slice(0,10)){
+        dispatch(updateWeeklyProgress('uncompleted'))
+        weeklyData[weeklyData.length - 1] = weeklyData[weeklyData.length - 1] - 1;
+      }
+      await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, {...task, weeklyProgress: weeklyData} , {withCredentials: true})
       
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
