@@ -11,7 +11,7 @@ type TaskType = {
     status: "inProgress"| "completed";
     type: "daily" | "general" ;
     dueDate: string;
-    completedOn: string | undefined;
+    completedOn: string ;
 }
 
 type taskStateType = {

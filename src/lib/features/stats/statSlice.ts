@@ -54,9 +54,31 @@ const statSlice = createSlice({
         },
         editPerformance: (state, action: PayloadAction<PerformanceType>) => {
             state.performance = action.payload;
+        },
+        updateStreak: (state, action: PayloadAction<'continue' | 'remove'>) => {
+            if (action.payload == 'continue' && state.performance){
+                state.performance.currentStreak = state.performance.currentStreak ? state.performance.currentStreak + 1 : 1 ;
+                if(state.performance.currentStreak > state.performance.longestStreak){
+                    state.performance.longestStreak = state.performance.currentStreak;
+                }
+            }
+            else if(action.payload == 'remove' && state.performance){
+                state.performance.currentStreak = state.performance.currentStreak ? state.performance.currentStreak - 1 : 0 ;
+            }
+        },
+        updateWeeklyProgress: (state, action: PayloadAction<'completed' | 'uncompleted'>) => {
+            if(state.performance){
+                const weeklyProgress = state.performance.weeklyProgress ;
+                if(action.payload == 'completed'){
+                    weeklyProgress[weeklyProgress.length - 1] = weeklyProgress[weeklyProgress.length - 1] + 1;
+                }
+                else if(action.payload == 'uncompleted'){
+                    weeklyProgress[weeklyProgress.length - 1] = weeklyProgress[weeklyProgress.length - 1] - 1;
+                }
+            }
         }
     },
 })
 
-export const {addPerformance, addLeaderBoard, errorGettingPerformance, errorGettingLeaderBoard, editPerformance} = statSlice.actions;
+export const {addPerformance, addLeaderBoard, errorGettingPerformance, errorGettingLeaderBoard, editPerformance, updateStreak, updateWeeklyProgress} = statSlice.actions;
 export default statSlice.reducer;
