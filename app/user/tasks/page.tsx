@@ -11,6 +11,7 @@ import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGet
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
 import Link from "next/link";
 import axios from "axios";
+import { updateStreak } from "@/src/lib/features/stats/statSlice";
 // import { editPerformance } from "@/src/lib/features/stats/statSlice";
 
 export type taskType = {
@@ -22,7 +23,7 @@ export type taskType = {
     status: "inProgress"| "completed";
     type: "daily" | "general" ;
     dueDate: string;
-    completedOn: string | undefined;
+    completedOn: string;
 }
 
 export default function TasksPage() {
@@ -81,7 +82,7 @@ export default function TasksPage() {
     } else {
       try {
         // this is for creating a new task as that will not be having any id !!
-        const tempId = 'temp123' // WE CAN IN FUTURE GENERATE DYNAMIC TEMP IDs
+        const tempId = new Date().toISOString()
         
         // NOTE: we will keep newly created tasks at the end as i should see that task on top which was firstly created !!
   
@@ -196,32 +197,40 @@ export default function TasksPage() {
   console.log('default completed task: ', totalCompletedTasks)
 
   const taskStatusToggleHandler = async(task: taskType) => {
-    
+    const defaultTask = {...task} ;
     try {
       if(task.status == 'completed'){
         task.completedOn = new Date().toISOString()
       }
       else {
-        task.completedOn = undefined;
+        task.completedOn = '';
       }
       console.log('task going in store: ',task)
       dispatch(editTask(task))  // in future we will not wait for backend confirmation but will immediately update the redux store and if in future got an error then we will show the alert as done here !!
       console.log('completed task after setting in store', totalCompletedTasks)
       if(task.status == 'completed'){
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
-        else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav')
+        else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav');
         showConfetti();
       }else playSound('/sounds/incompleteTaskSound.wav')
 
       if(performance && totalCompletedTasks == 0) { // if a task pass this check that means the user does not have till now any completed task for today which means here we can call backend to update streak
+        dispatch(updateStreak('continue'));
         await axios.get('http://localhost:5000/api/dashboard/updateStreak/add', {withCredentials: true})
       }
       else if(task.status == 'inProgress' && totalCompletedTasks == 1){ // this will mean user is marking a completed task as uncompleted
-        if(task.completedOn && (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
+        console.log('1st runs in streak removal !!')
+        console.log('task.completedOn: ', task.completedOn)
+        console.log('(defaultTask.completedOn).slice(0,10) : ', (defaultTask.completedOn).slice(0,10))
+        console.log('new Date().toISOString().slice(0, 10) : ',new Date().toISOString().slice(0, 10))
+        if(!task.completedOn && (defaultTask.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
+          console.log('streak removal runs !!')
+          dispatch(updateStreak('remove'));
           await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
         }
       }
 
+      console.log('task sending from frontend: ', task)
       await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task , {withCredentials: true})
       
     } catch (error) {
