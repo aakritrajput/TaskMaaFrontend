@@ -1,8 +1,10 @@
 "use client";
 
+import { RootState } from "@/src/lib/store";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useSelector } from "react-redux";
 
 // --- Types ---
 type Importance = "low" | "medium" | "high";
@@ -47,7 +49,7 @@ export default function TwoStepGroupTaskOverlay({
   const initialCandidates = editData?.type == 'public' ? [...friendsList, ...publicMembers] : [...friendsList]
   const [allCandidates, setAllCandidates] = useState<Member[]>(initialCandidates);
   const [toasts, setToasts] = useState<{ id: string; text: string }[]>([]);
-
+  const user = useSelector((state: RootState) => state.auth.user)
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<GroupTaskFormData>({
     defaultValues: editData || {
       title: "",
@@ -123,7 +125,7 @@ export default function TwoStepGroupTaskOverlay({
 
   const onFinalSubmit: SubmitHandler<GroupTaskFormData> = (data) => {
     const idsOfSelectedMembers = selectedMembers.map((member) => member.id)
-    onSubmit({ ...data, members: idsOfSelectedMembers });
+    onSubmit({ ...data, members: user ? [...idsOfSelectedMembers, user._id] : idsOfSelectedMembers });
     pushToast(data.title ? `"${data.title}" saved` : "Task saved");
     // will reset only when creating new (if editing we might want to keep state externally)
     // close modal shortly after

@@ -30,7 +30,6 @@ type publicGroupTaskType = {
     importance: 'low' | 'medium' | 'high' ;
     status: 'ongoing' | 'completed' ;
     winners: string[];
-    pendingRequests: string[];
     createdAt?: string;
     updatedAt?: string;
 }
@@ -86,7 +85,6 @@ export default function GroupTasksPage() {
         creatorId: {_id: 'user_4', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'}, // here creatorId should contain the populated user's profilepic and user name !!
         dueDate: '15-10-2025',
         type: 'public',
-        pendingRequests: ['user1', '12345']
       },
       {
         _id: '2',
@@ -98,7 +96,6 @@ export default function GroupTasksPage() {
         creatorId: {_id: '12345', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'},
         dueDate: '15-10-2025',
         type: 'public',
-        pendingRequests: ['user_2'],
       },
       {
         _id: '3',
@@ -110,7 +107,6 @@ export default function GroupTasksPage() {
         creatorId: {_id: '12345', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'},
         dueDate: '15-10-2025',
         type: 'public',
-        pendingRequests: [],
       }
     ]   
 
@@ -131,7 +127,7 @@ export default function GroupTasksPage() {
       },
     ]
 
-    const requestHandler = () => {}
+    const participateHandler = () => {}
     const onSubmit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
     const friends: Member[] = dummyFriends;
 
@@ -204,7 +200,7 @@ export default function GroupTasksPage() {
                 <div className="flex justify-end items-center mt-4"> {/* Here in pending requests we can add an even listener sought of something that will listen if there is any response like my request is accepted then i should not be shown this gorup task in the suggestions but in my group tasks only !! */}
                   {/* In future if we have a lot of users then we can here Implement recommendation for the public group tasks and pagination also  !! */}
                   {/* Also this time we will only allow user to just one time press the btn - that to request and after that he cannot press it like to redo the action as that would complex our first versions making*/}
-                  <button onClick={requestHandler} disabled={task.pendingRequests.includes(user?._id ?? '')} className={`px-3 py-1 text-sm rounded ${task.pendingRequests.includes(user?._id ?? '') ? 'bg-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-500 to-teal-400 cursor-pointer'} hover:opacity-90 transition`}>{task.pendingRequests.includes(user?._id ?? '') ? 'Requested...' : 'Request' }</button>
+                  <button onClick={participateHandler} className={`px-3 py-1 text-sm rounded bg-gradient-to-r from-indigo-500 to-teal-400 cursor-pointer hover:opacity-90 transition`}>Participate</button>
                 </div>
               </div>
             ))}
