@@ -92,14 +92,7 @@ const last7Days = getLast7Days();
 
 const COLORS = ["#34D399", "#F87171"];
 
-// Small presentational components
-
-function ImportanceBadge({ importance }: { importance: TaskItem["importance"] }) {
-  const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
-  if (importance === "high") return <span className={`${base} bg-red-600/30 text-red-200`}>High</span>;
-  if (importance === "medium") return <span className={`${base} bg-yellow-600/25 text-yellow-200`}>Medium</span>;
-  return <span className={`${base} bg-green-700/25 text-green-200`}>Low</span>;
-}
+// Small presentational component
 
 function StatusChip({ status }: { status: TaskItem["status"] }) {
   const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
@@ -352,7 +345,7 @@ export default function TaskMaaDashboard() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <ImportanceBadge importance={t.importance} />
+                        <StatusChip status={t.status} />
                       </div>
                     </div>
                   ))
@@ -383,6 +376,7 @@ export default function TaskMaaDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            <h1 className="text-sm text-gray-400">Note: If you delete your completed tasks, then that would still contribute to above metrix..</h1>
 
             {/* Donut / status overview */}
             <div className="mt-4 flex flex-col items-center gap-3 border-2 border-[#71e4f8] rounded-2xl p-2">
