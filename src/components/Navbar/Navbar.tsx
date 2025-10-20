@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { /*useDispatch,*/ useSelector } from "react-redux";
 import type { RootState } from "../../lib/store";
 import { FallbackNavbar } from "./NavbarFallbackUI";
+import axios from "axios";
 //import { logout } from "../lib/features/auth/AuthSlice";
 
 export default function Navbar() {
@@ -107,6 +108,14 @@ export default function Navbar() {
     console.log('Task to search: ', searchValue)
     setSearchedTasks(searchResult) // for now we are using same data for every search
     setSearchValue('')
+  }
+
+  const logoutHandler = async() => {
+    try {
+      await axios.get('http://localhost:5000/api/user/logout', {withCredentials: true})
+    } catch (error) {
+      console.log('error: ', error)
+    }
   }
  
 
@@ -238,6 +247,15 @@ export default function Navbar() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
+
+          {/* Later we will remove logout from here !! */}
+          <button
+            className=" text-white text-xl"
+            onClick={() => logoutHandler()}
+          >
+            Logout
+          </button>
+
           {/* Search Icon / Input Trigger */}
           <button
             className="md:hidden text-white text-xl"
