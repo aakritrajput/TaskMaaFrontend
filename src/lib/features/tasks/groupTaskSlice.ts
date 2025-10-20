@@ -26,12 +26,18 @@ type groupTaskSliceType = {
     groupTasks: groupTaskType[];
     publicTasks: groupTaskType[];
     friends: friendsType[];
+    groupTaskStatus: 'Loading' | 'Fetched' | 'Error';
+    publicTaskStatus: 'Loading' | 'Fetched' | 'Error';
+    friendsStatus: 'Loading' | 'Fetched' | 'Error';
 }
 
 const initialState: groupTaskSliceType = {
     groupTasks: [],
     publicTasks: [],
     friends: [],
+    groupTaskStatus: 'Loading',
+    publicTaskStatus: 'Loading',
+    friendsStatus: 'Loading',
 }
 
 const groupTaskSlice = createSlice({
@@ -40,12 +46,24 @@ const groupTaskSlice = createSlice({
     reducers: {
         addGroupTasks: (state, action: PayloadAction<groupTaskType[]>) => {
             state.groupTasks = action.payload;
+            state.groupTaskStatus = 'Fetched';
         },
         addPublicTasks: (state, action: PayloadAction<groupTaskType[]>) => {
             state.publicTasks = action.payload;
+            state.publicTaskStatus = 'Fetched';
         },
         addFriends: (state, action: PayloadAction<friendsType[]>) => {
             state.friends = action.payload;
+            state.friendsStatus = 'Fetched';
+        },
+        errorOnGrouptasks: (state) => {
+            state.groupTaskStatus = 'Error';
+        },
+        errorOnPublictasks: (state) => {
+            state.publicTaskStatus = 'Error';
+        },
+        errorOnFriends: (state) => {
+            state.friendsStatus = 'Error';
         },
         addNewGroupTask: (state, action: PayloadAction<groupTaskType>) => {
             state.groupTasks.push(action.payload)
@@ -65,6 +83,6 @@ const groupTaskSlice = createSlice({
     }
 })
 
-export const {addGroupTasks, addPublicTasks, addFriends, addNewGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
+export const {addGroupTasks, addPublicTasks, addFriends, errorOnGrouptasks, errorOnPublictasks, errorOnFriends, addNewGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
 
 export default groupTaskSlice.reducer ;
