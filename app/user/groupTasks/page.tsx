@@ -1,10 +1,13 @@
 'use client'
 
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
+import { addFriends } from '@/src/lib/features/tasks/groupTaskSlice';
 import { RootState } from '@/src/lib/store';
+import { current } from '@reduxjs/toolkit';
+import axios from 'axios';
 import Link from 'next/link';
-import React, { useState } from 'react'
-import { useSelector } from 'react-redux';
+import React, { useEffect, useRef, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux';
 
 export type groupTaskType = {
     _id: string;
@@ -37,6 +40,8 @@ type publicGroupTaskType = {
 export default function GroupTasksPage() {
     const user = useSelector((state: RootState)=> state.auth.user)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
+
+    const dispatch = useDispatch();
 
     const groupTasks: groupTaskType[] = [
       {
@@ -127,6 +132,28 @@ export default function GroupTasksPage() {
       },
     ]
 
+    const dataFromStore = useSelector((state: RootState) => state.groupTask)
+
+    const hasFetched = useRef({
+      friends: false,
+    })
+
+    useEffect(() => {
+      if(dataFromStore.friendsStatus == 'Loading' && !hasFetched.current.friends){
+        hasFetched.current.friends = true;
+        async function getFriends(){
+        try {
+          const response = await axios.get('http://localhost:5000/api/user/getFriends', {withCredentials: true})
+          console.log(response);
+          dispatch(addFriends(response.data.data))
+        } catch (error) {
+          console.log('error: ', error)
+        }
+      }
+      getFriends();
+      }
+    }, [dataFromStore.friendsStatus, dispatch])
+
     const participateHandler = () => {}
     const onSubmit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
     const friends: Member[] = dummyFriends;
@@ -208,7 +235,7 @@ export default function GroupTasksPage() {
           {publicGroupTasks.length == 0 && <p className='w-full text-center text-gray-500'>There are not any public group tasks available !!</p>}
         </div>
 
-        {modalOpen && <TwoStepGroupTaskOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)} onSubmit={onSubmit} friendsList={friends}/>}
+        {modalOpen && <TwoStepGroupTaskOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)} onSubmit={onSubmit} friendsList={dataFromStore.friendsStatus == 'Fetched' ? dataFromStore.friends : []}/>}
         {/* Glassmorphism style */}
         <style jsx>{`
           .glass-card {
