@@ -14,27 +14,57 @@ type groupTaskType = {
     updatedAt?: string;
 }
 
+type friendsType = {
+    id: string;
+    name: string;
+    username: string;
+    profilePic: string;
+    isFriend: boolean;
+}
+
 type groupTaskSliceType = {
-    currentTask: groupTaskType | null;
+    groupTasks: groupTaskType[];
+    publicTasks: groupTaskType[];
+    friends: friendsType[];
 }
 
 const initialState: groupTaskSliceType = {
-    currentTask: null,
+    groupTasks: [],
+    publicTasks: [],
+    friends: [],
 }
 
 const groupTaskSlice = createSlice({
     name: "groupTask",
     initialState,
     reducers: {
-        addCurrentTask: (state, action: PayloadAction<groupTaskType>) => {
-            state.currentTask = action.payload;
+        addGroupTasks: (state, action: PayloadAction<groupTaskType[]>) => {
+            state.groupTasks = action.payload;
         },
-        removeCurrentTask: (state) => {
-            state.currentTask = null;
-        }
+        addPublicTasks: (state, action: PayloadAction<groupTaskType[]>) => {
+            state.publicTasks = action.payload;
+        },
+        addFriends: (state, action: PayloadAction<friendsType[]>) => {
+            state.friends = action.payload;
+        },
+        addNewGroupTask: (state, action: PayloadAction<groupTaskType>) => {
+            state.groupTasks.push(action.payload)
+        },
+        editGroupTask: (state, action: PayloadAction<groupTaskType>) => {
+            state.groupTasks  = state.groupTasks.map(task => task._id == action.payload._id ? action.payload : task)
+        },
+        deleteGroupTask: (state, action: PayloadAction<groupTaskType["_id"]>) => {
+            state.groupTasks = state.groupTasks.filter(task => task._id !== action.payload)
+        },
+        addNewFriend: (state, action: PayloadAction<friendsType>) => {
+            state.friends.push(action.payload)
+        },
+        removeFriend: (state, action: PayloadAction<friendsType["id"]>) => {
+            state.friends = state.friends.filter(task => task.id !== action.payload)
+        },
     }
 })
 
-export const {addCurrentTask, removeCurrentTask} = groupTaskSlice.actions ;
+export const {addGroupTasks, addPublicTasks, addFriends, addNewGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
 
 export default groupTaskSlice.reducer ;
