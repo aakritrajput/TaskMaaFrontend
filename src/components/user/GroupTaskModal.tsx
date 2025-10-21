@@ -11,14 +11,15 @@ type Importance = "low" | "medium" | "high";
 type GroupType = "private" | "public";
 
 export type Member = {
-  id: string;
+  _id: string;
   name: string;
   username: string;
-  profilePic?: string;
+  profilePicture?: string;
   isFriend?: boolean;
 };
 
 export type GroupTaskFormData = {
+  _id?: string;
   title: string;
   description: string;
   type: GroupType;
@@ -29,7 +30,7 @@ export type GroupTaskFormData = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (payload: GroupTaskFormData & { members: Member['id'][] }) => void;
+  onSubmit: (payload: GroupTaskFormData & { members: Member['_id'][] }) => void;
   editData?: (GroupTaskFormData & { members: Member[] }) | null;
   friendsList: Member[]; // our friends
   publicMembers?: Member[]; // existing public members when editing a public group
@@ -67,19 +68,19 @@ export default function TwoStepGroupTaskOverlay({
       setAllCandidates((prev) => {
         const combined = [
           ...friendsList,
-          ...publicMembers.filter((m) => !friendsList.some((f) => f.id === m.id)),
+          ...publicMembers.filter((m) => !friendsList.some((f) => f._id === m._id)),
         ];
         // Only update if actually changed
         const isSame =
           prev.length === combined.length &&
-          prev.every((p, i) => p.id === combined[i].id);
+          prev.every((p, i) => p._id === combined[i]._id);
         return isSame ? prev : combined;
       });
     } else {
       setAllCandidates((prev) => {
         const isSame =
           prev.length === friendsList.length &&
-          prev.every((p, i) => p.id === friendsList[i].id);
+          prev.every((p, i) => p._id === friendsList[i]._id);
         return isSame ? prev : friendsList;
       });
     }
@@ -113,18 +114,18 @@ export default function TwoStepGroupTaskOverlay({
   }
 
   function addMember(m: Member) {
-    if (selectedMembers.some((x) => x.id === m.id)) return;
+    if (selectedMembers.some((x) => x._id === m._id)) return;
     setSelectedMembers((s) => [...s, m]);
     pushToast(`${m.name} added`);
   }
   function removeMember(id: string) {
-    const removed = selectedMembers.find((s) => s.id === id);
-    setSelectedMembers((s) => s.filter((x) => x.id !== id));
+    const removed = selectedMembers.find((s) => s._id === id);
+    setSelectedMembers((s) => s.filter((x) => x._id !== id));
     if (removed) pushToast(`${removed.name} removed`);
   }
 
   const onFinalSubmit: SubmitHandler<GroupTaskFormData> = (data) => {
-    const idsOfSelectedMembers = selectedMembers.map((member) => member.id)
+    const idsOfSelectedMembers = selectedMembers.map((member) => member._id)
     onSubmit({ ...data, members: user ? [...idsOfSelectedMembers, user._id] : idsOfSelectedMembers });
     pushToast(data.title ? `"${data.title}" saved` : "Task saved");
     // will reset only when creating new (if editing we might want to keep state externally)
@@ -265,22 +266,22 @@ export default function TwoStepGroupTaskOverlay({
                   <div className="flex flex-wrap gap-2">
                     {selectedMembers.length === 0 && <div className="text-sm text-slate-400">No members added yet</div>}
                     {selectedMembers.map((m) => (
-                      <div key={m.id} className="flex items-center gap-2 bg-[rgba(255,255,255,0.03)] px-3 py-1 rounded-full">
-                        <Image width={20} height={20} src={m.profilePic ? m.profilePic : '/profile/default_profile_pic.png'} alt={m.name} className="w-6 h-6 rounded-full" />
+                      <div key={m._id} className="flex items-center gap-2 bg-[rgba(255,255,255,0.03)] px-3 py-1 rounded-full">
+                        <Image width={20} height={20} src={m.profilePicture ? m.profilePicture : '/profile/default_profile_pic.png'} alt={m.name} className="w-6 h-6 rounded-full" />
                         <span className="text-sm text-slate-200">{m.name}</span>
-                        <button onClick={() => removeMember(m.id)} className="ml-2 text-xs text-red-300">✕</button>
+                        <button onClick={() => removeMember(m._id)} className="ml-2 text-xs text-red-300">✕</button>
                       </div>
                     ))}
                   </div>
 
                   <div className="max-h-56 overflow-auto py-2">
                     <div className="space-y-2">
-                      {allCandidates.map((member) => {
-                        const added = selectedMembers.some((s) => s.id === member.id);
+                      {allCandidates.map((member, idx) => {
+                        const added = selectedMembers.some((s) => s._id === member._id);
                         return (
-                          <div key={member.id} className="flex items-center justify-between bg-[rgba(255,255,255,0.02)] p-3 rounded-xl">
+                          <div key={idx} className="flex items-center justify-between bg-[rgba(255,255,255,0.02)] p-3 rounded-xl">
                             <div className="flex items-center gap-3">
-                              <Image width={30} height={30} src={member.profilePic ? member.profilePic : '/profile/default_profile_pic.png'} alt={member.name} className="w-10 h-10 rounded-full" />
+                              <Image width={30} height={30} src={member.profilePicture ? member.profilePicture : '/profile/default_profile_pic.png'} alt={member.name} className="w-10 h-10 rounded-full" />
                               <div>
                                 <div className="text-slate-200 font-medium">{member.name}</div>
                                 <div className="text-xs text-slate-400">@{member.username} {member.isFriend ? "(friend)" : "(public)"}</div>
@@ -288,7 +289,7 @@ export default function TwoStepGroupTaskOverlay({
                             </div>
                             <div>
                               <button
-                                onClick={() => (added ? removeMember(member.id) : addMember(member))}
+                                onClick={() => (added ? removeMember(member._id) : addMember(member))}
                                 className={`px-3 py-1 rounded-md font-medium ${added ? "bg-transparent border border-red-400 text-red-300" : "bg-gradient-to-r from-[#00d2a3] to-[#06a3c6] text-black"}`}
                               >
                                 {added ? "Remove" : "Add"}
