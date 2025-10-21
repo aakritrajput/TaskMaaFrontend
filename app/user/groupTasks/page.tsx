@@ -1,10 +1,10 @@
 'use client'
 
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
-import { addFriends } from '@/src/lib/features/tasks/groupTaskSlice';
+import { addFriends, addGroupTasks, addNewGroupTask, addPublicTasks, errorOnFriends, errorOnGrouptasks, errorOnPublictasks, updateIdOfNewlyAddedGroupTask } from '@/src/lib/features/tasks/groupTaskSlice';
 import { RootState } from '@/src/lib/store';
-import { current } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { Lock, LockOpen } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,119 +23,23 @@ export type groupTaskType = {
     updatedAt?: string;
 }
 
-type publicGroupTaskType = {
-    _id: string;
-    title: string;
-    description?: string;
-    type: 'public';
-    creatorId: {_id: string; profilePic: string; username: string;};
-    dueDate: string;
-    importance: 'low' | 'medium' | 'high' ;
-    status: 'ongoing' | 'completed' ;
-    winners: string[];
-    createdAt?: string;
-    updatedAt?: string;
-}
-
 export default function GroupTasksPage() {
     const user = useSelector((state: RootState)=> state.auth.user)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
 
     const dispatch = useDispatch();
 
-    const groupTasks: groupTaskType[] = [
-      {
-        _id: '1',
-        title: '30 Days Coding Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: ['Komal', 'Karan', 'Nina'],
-        creatorId: '12345',
-        dueDate: '15-10-2025',
-        type: 'private',
-      },
-      {
-        _id: '2',
-        title: '30 Days Coding Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: ['Komal', 'Karan', 'Nina'],
-        creatorId: '12345',
-        dueDate: '15-10-2025',
-        type: 'private',
-      },
-      {
-        _id: '3',
-        title: 'Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: ['Komal', 'Karan', 'Nina'],
-        creatorId: '1234567',
-        dueDate: '15-10-2025',
-        type: 'private',
-      }
-    ]
-
-    const publicGroupTasks: publicGroupTaskType[] = [
-      {
-        _id: '1',
-        title: '30 Days Coding Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: [],
-        creatorId: {_id: 'user_4', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'}, // here creatorId should contain the populated user's profilepic and user name !!
-        dueDate: '15-10-2025',
-        type: 'public',
-      },
-      {
-        _id: '2',
-        title: '30 Days Coding Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: ['Komal', 'Karan', 'Nina'],
-        creatorId: {_id: '12345', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'},
-        dueDate: '15-10-2025',
-        type: 'public',
-      },
-      {
-        _id: '3',
-        title: 'Challenge',
-        description: 'Complete daily coding challenges to improve problem-solving skills.',
-        importance: 'high',
-        status: 'ongoing',
-        winners: ['Komal', 'Karan', 'Nina'],
-        creatorId: {_id: '12345', profilePic: '/profile/default_profile_pic.png', username: 'aakrit.rajput'},
-        dueDate: '15-10-2025',
-        type: 'public',
-      }
-    ]   
-
-    const dummyFriends = [
-      {
-      id: '12',
-      name: 'vinayak',
-      username: 'vinayak23',
-      profilePic: '',
-      isFriend: true,
-      },
-      {
-      id: '123',
-      name: 'anushka',
-      username: 'anu123',
-      profilePic: '',
-      isFriend: true,
-      },
-    ]
-
     const dataFromStore = useSelector((state: RootState) => state.groupTask)
+
+    const groupTasks = dataFromStore.groupTasks
+
+    const publicGroupTasks = dataFromStore.publicTasks
+    console.log('public group tasks: ', publicGroupTasks)
 
     const hasFetched = useRef({
       friends: false,
+      groupTasks: false,
+      publicTasks: false,
     })
 
     useEffect(() => {
@@ -148,15 +52,59 @@ export default function GroupTasksPage() {
           dispatch(addFriends(response.data.data))
         } catch (error) {
           console.log('error: ', error)
+          dispatch(errorOnFriends())
         }
       }
       getFriends();
       }
-    }, [dataFromStore.friendsStatus, dispatch])
+      if(dataFromStore.groupTaskStatus == 'Loading' && !hasFetched.current.groupTasks){
+        hasFetched.current.groupTasks = true;
+        async function getGroupTasks(){
+        try {
+          const response = await axios.get('http://localhost:5000/api/groupTask/myGroupTasks', {withCredentials: true})
+          console.log(response);
+          dispatch(addGroupTasks(response.data.data))
+        } catch (error) {
+          console.log('error: ', error)
+          dispatch(errorOnGrouptasks())
+        }
+      }
+      getGroupTasks();
+      }
+      if(dataFromStore.publicTaskStatus == 'Loading' && !hasFetched.current.publicTasks){
+        hasFetched.current.publicTasks = true;
+        async function getPublicTasks(){
+        try {
+          const response = await axios.get('http://localhost:5000/api/groupTask/publicGroupTasks', {withCredentials: true})
+          console.log(response);
+          dispatch(addPublicTasks(response.data.data))
+        } catch (error) {
+          console.log('error: ', error)
+          dispatch(errorOnPublictasks())
+        }
+      }
+      getPublicTasks();
+      }
+    }, [dataFromStore.friendsStatus, dispatch, dataFromStore.groupTaskStatus, dataFromStore.publicTaskStatus])
 
     const participateHandler = () => {}
-    const onSubmit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
-    const friends: Member[] = dummyFriends;
+    const onSubmit = async(data: GroupTaskFormData & { members: Member['_id'][] }) => {
+      try {
+        const tempId = new Date().toISOString();
+        const updateData: groupTaskType = {_id: tempId, ...data, creatorId: user ? user._id : '', status: 'ongoing', winners: []};
+        dispatch(addNewGroupTask(updateData))
+        // now if we see we are also sending _id to backend but that's ok as in backend the data is filtering out and in db we are only storing rest of the fields and id is newly generated automatically !!
+        const response = await axios.post('http://localhost:5000/api/groupTask/createGroupTask', data, {withCredentials: true})
+        dispatch(updateIdOfNewlyAddedGroupTask({ oldId: tempId ,newData: response.data.data})) // it will update the old id with the new one !!
+      } catch (error) {
+        if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+          alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
+        }else {
+          alert("There was some Error creating your group Task !! - Need to refresh the whole page.. ")
+        }
+        window.location.reload()
+      }
+    };
 
     function ImportanceBadge({ importance }: { importance: groupTaskType["importance"] }) {
         const base = "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
@@ -195,7 +143,8 @@ export default function GroupTasksPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end items-center mt-4">
+                <div className="flex justify-end gap-2 items-center mt-4">
+                  <p className='text-[cyan]'>{task.type == 'public' ? <LockOpen/> : <Lock/>}</p>
                   <button className="px-3 py-1 text-sm rounded bg-gradient-to-r from-indigo-500 to-teal-400 hover:opacity-90 transition">View</button>
                 </div>
               </Link>
