@@ -15,7 +15,7 @@ type groupTaskType = {
 }
 
 type friendsType = {
-    id: string;
+    _id: string;
     name: string;
     username: string;
     profilePic: string;
@@ -66,10 +66,13 @@ const groupTaskSlice = createSlice({
             state.friendsStatus = 'Error';
         },
         addNewGroupTask: (state, action: PayloadAction<groupTaskType>) => {
-            state.groupTasks.push(action.payload)
+            state.groupTasks = [action.payload, ...(state.groupTasks)]
         },
         editGroupTask: (state, action: PayloadAction<groupTaskType>) => {
             state.groupTasks  = state.groupTasks.map(task => task._id == action.payload._id ? action.payload : task)
+        },
+        updateIdOfNewlyAddedGroupTask: (state, action: PayloadAction<{oldId: string; newData: groupTaskType}>) => {
+            state.groupTasks = state.groupTasks.map(task => task._id == action.payload.oldId ? action.payload.newData : task)
         },
         deleteGroupTask: (state, action: PayloadAction<groupTaskType["_id"]>) => {
             state.groupTasks = state.groupTasks.filter(task => task._id !== action.payload)
@@ -77,12 +80,12 @@ const groupTaskSlice = createSlice({
         addNewFriend: (state, action: PayloadAction<friendsType>) => {
             state.friends.push(action.payload)
         },
-        removeFriend: (state, action: PayloadAction<friendsType["id"]>) => {
-            state.friends = state.friends.filter(task => task.id !== action.payload)
+        removeFriend: (state, action: PayloadAction<friendsType["_id"]>) => {
+            state.friends = state.friends.filter(task => task._id !== action.payload)
         },
     }
 })
 
-export const {addGroupTasks, addPublicTasks, addFriends, errorOnGrouptasks, errorOnPublictasks, errorOnFriends, addNewGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
+export const {addGroupTasks, addPublicTasks, addFriends, errorOnGrouptasks, errorOnPublictasks, errorOnFriends, addNewGroupTask,updateIdOfNewlyAddedGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
 
 export default groupTaskSlice.reducer ;
