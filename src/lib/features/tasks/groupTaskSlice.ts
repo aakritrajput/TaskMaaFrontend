@@ -1,3 +1,4 @@
+import { Member } from "@/src/components/user/GroupTaskModal";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type groupTaskType = {
@@ -8,6 +9,7 @@ type groupTaskType = {
     creatorId: string;
     dueDate: string;
     importance: 'low' | 'medium' | 'high' ;
+    members: Member['_id'][];
     status: 'ongoing' | 'completed' ;
     winners: string[];
     createdAt?: string;
