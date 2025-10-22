@@ -1,5 +1,5 @@
 'use client';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/src/lib/store';
@@ -8,7 +8,7 @@ import { groupTaskType } from '../page';
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import { addFriends, addGroupTasks, editGroupTask, errorOnFriends, errorOnGrouptasks } from '@/src/lib/features/tasks/groupTaskSlice';
+import { addFriends, addGroupTasks, deleteGroupTask, editGroupTask, errorOnFriends, errorOnGrouptasks } from '@/src/lib/features/tasks/groupTaskSlice';
 
 export default function GroupTaskPage() {
   const { id } = useParams();
@@ -129,6 +129,24 @@ export default function GroupTaskPage() {
     }
   };
 
+  const router = useRouter()
+
+  const handleDeleteGroupTask = async() => {
+    try {
+      console.log('delete runs !!')
+      dispatch(deleteGroupTask(id as groupTaskType['_id']))
+      router.push('/user/groupTasks')
+      await axios.delete(`http://localhost:5000/api/groupTask/deleteGroupTask/${id}`, {withCredentials: true}) // the api call will still run !!
+    } catch (error) {
+      if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+        alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
+      }else {
+        alert("There was some Error while deleting your group Task !! - Need to refresh the whole page.. ")
+      }
+      window.location.reload()
+    }
+  }
+
   const isAdmin = currentGroupTask?.creatorId === userId;
 
   const glassClass =
@@ -241,7 +259,7 @@ export default function GroupTaskPage() {
                   <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={() => setModalOpen(true)} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-blue-600 rounded-xl hover:bg-blue-700 transition`}>
                     Edit
                   </button>
-                  <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-red-600 rounded-xl hover:bg-red-700 transition`}>
+                  <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={handleDeleteGroupTask} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-red-600 rounded-xl hover:bg-red-700 transition`}>
                     Delete
                   </button>
                 </div>
