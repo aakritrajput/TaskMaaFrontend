@@ -46,11 +46,12 @@ export default function TwoStepGroupTaskOverlay({
 }: Props) {
   // internal step state
   const [step, setStep] = useState<1 | 2>(1);
+  const user = useSelector((state: RootState) => state.auth.user)
   const [selectedMembers, setSelectedMembers] = useState<Member[]>(editData?.members || []);
+  const membersExcludingMe = selectedMembers.filter(member => member._id !== user?._id)
   const initialCandidates = editData?.type == 'public' ? [...friendsList, ...publicMembers] : [...friendsList]
   const [allCandidates, setAllCandidates] = useState<Member[]>(initialCandidates);
   const [toasts, setToasts] = useState<{ id: string; text: string }[]>([]);
-  const user = useSelector((state: RootState) => state.auth.user)
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<GroupTaskFormData>({
     defaultValues: editData || {
       title: "",
@@ -114,25 +115,24 @@ export default function TwoStepGroupTaskOverlay({
   }
 
   function addMember(m: Member) {
-    if (selectedMembers.some((x) => x._id === m._id)) return;
+    if (membersExcludingMe.some((x) => x._id === m._id)) return;
     setSelectedMembers((s) => [...s, m]);
     pushToast(`${m.name} added`);
   }
   function removeMember(id: string) {
-    const removed = selectedMembers.find((s) => s._id === id);
+    const removed = membersExcludingMe.find((s) => s._id === id);
     setSelectedMembers((s) => s.filter((x) => x._id !== id));
     if (removed) pushToast(`${removed.name} removed`);
   }
 
   const onFinalSubmit: SubmitHandler<GroupTaskFormData> = (data) => {
-    const idsOfSelectedMembers = selectedMembers.map((member) => member._id)
+    // setTimeout(() => {
+    //   onClose();
+    // }, 600);
+    const idsOfSelectedMembers = membersExcludingMe.map((member) => member._id)
     onSubmit({ ...data, members: user ? [...idsOfSelectedMembers, user._id] : idsOfSelectedMembers });
     pushToast(data.title ? `"${data.title}" saved` : "Task saved");
-    // will reset only when creating new (if editing we might want to keep state externally)
-    // close modal shortly after
-    setTimeout(() => {
-      onClose();
-    }, 600);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -264,8 +264,8 @@ export default function TwoStepGroupTaskOverlay({
               >
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
-                    {selectedMembers.length === 0 && <div className="text-sm text-slate-400">No members added yet</div>}
-                    {selectedMembers.map((m) => (
+                    {membersExcludingMe.length === 0 && <div className="text-sm text-slate-400">No members added yet</div>}
+                    {membersExcludingMe.map((m) => (
                       <div key={m._id} className="flex items-center gap-2 bg-[rgba(255,255,255,0.03)] px-3 py-1 rounded-full">
                         <Image width={20} height={20} src={m.profilePicture ? m.profilePicture : '/profile/default_profile_pic.png'} alt={m.name} className="w-6 h-6 rounded-full" />
                         <span className="text-sm text-slate-200">{m.name}</span>
@@ -277,7 +277,7 @@ export default function TwoStepGroupTaskOverlay({
                   <div className="max-h-56 overflow-auto py-2">
                     <div className="space-y-2">
                       {allCandidates.map((member, idx) => {
-                        const added = selectedMembers.some((s) => s._id === member._id);
+                        const added = membersExcludingMe.some((s) => s._id === member._id);
                         return (
                           <div key={idx} className="flex items-center justify-between bg-[rgba(255,255,255,0.02)] p-3 rounded-xl">
                             <div className="flex items-center gap-3">
