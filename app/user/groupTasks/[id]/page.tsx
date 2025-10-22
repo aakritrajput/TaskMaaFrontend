@@ -1,123 +1,135 @@
 'use client';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/src/lib/store';
 import { CheckCircle2, Lock, LockOpen } from 'lucide-react';
 import { groupTaskType } from '../page';
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { addFriends, addGroupTasks, editGroupTask, errorOnFriends, errorOnGrouptasks } from '@/src/lib/features/tasks/groupTaskSlice';
 
 export default function GroupTaskPage() {
   const { id } = useParams();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const user = useSelector((state: RootState) => state.auth.user)
   const userId = user?._id
+  const [membersLoading, setMembersLoading] = useState<boolean>(true);
 
-  // Dummy Task Data
-  const currentGroupTask = {
-    _id: id,
-    title: 'Build AI-Powered Habit Tracker',
-    description:
-      'A collaborative challenge to build a productivity app that tracks habits and motivates users using AI-driven insights.',
-    type: 'public',
-    creatorId: '12345',
-    dueDate: '2025-10-30',
-    importance: 'high',
-    status: 'ongoing',
-    winners: ['user_3', 'user_5','12345', 'user_4'],
-  };
+  const dispatch = useDispatch();
+  const groupTaskStatus = useSelector((state: RootState) => state.groupTask.groupTaskStatus)
+  const currentGroupTask = useSelector((state: RootState) => state.groupTask.groupTasks.find(task => task._id == id))
 
-  const defaultData: GroupTaskFormData & { members: Member[] } = { // note: we need to make this exact data from the data we will recieve from backend ---> for editing purpose
-    title: 'Build AI-Powered Habit Tracker',
-    description:
-      'A collaborative challenge to build a productivity app that tracks habits and motivates users using AI-driven insights.',
-    type: 'public',
-    dueDate: '2025-10-30',
-    importance: 'high',
-    members: [
-      {
-        id: '12',
-        name: 'vinayak',
-        username: 'vinayak23',
-        profilePic: '',
-        isFriend: true,
-      },
-      {
-        id: '1234',
-        name: 'karan',
-        username: 'karan123',
-        profilePic: '',
-        isFriend: false,
-      },
-      {
-        id: '142',
-        name: 'komal',
-        username: 'komal23',
-        profilePic: '',
-        isFriend: false,
-      },
-    ]
+  const friendsStatus = useSelector((state: RootState) => state.groupTask.friendsStatus)
+  const friends = useSelector((state: RootState) => state.groupTask.friends)
+
+  const [members, setMembers] = useState<Member[]>([])
+
+  const groupTaskMembers = members.map(member => ({...member, isFriend: friends.some(friend => friend._id == member._id)}))
+
+  
+  const defaultData: GroupTaskFormData & {members: Member[]} = {
+    title: currentGroupTask?.title || '',
+    description: currentGroupTask?.description || '',
+    type: currentGroupTask?.type || 'private',
+    dueDate: currentGroupTask  ?  new Date(currentGroupTask.dueDate).toISOString().split('T')[0] : '',
+    importance: currentGroupTask?.importance || 'medium',
+    members: groupTaskMembers
   }
 
-  const publicMembersStranger = [
-    {
-        id: '1234',
-        name: 'karan',
-        username: 'karan123',
-        profilePic: '',
-        isFriend: false,
-      },
-      {
-        id: '142',
-        name: 'komal',
-        username: 'komal23',
-        profilePic: '',
-        isFriend: false,
-      },
-  ]
+  const [membersError, setMembersError] = useState<string>('')
 
-   const dummyFriends = [
-        {
-        id: '12',
-        name: 'vinayak',
-        username: 'vinayak23',
-        profilePic: '',
-        isFriend: true,
-        },
-        {
-        id: '123',
-        name: 'anushka',
-        username: 'anu123',
-        profilePic: '',
-        isFriend: true,
-        },
-      ]
-  
-    
-    const friends: Member[] = dummyFriends;
+  const publicMembersStranger = groupTaskMembers.filter(member => !member.isFriend && member._id !== userId) // we don't want that the user itself like me is also added in public members list as i will not be included in my friends list 
 
-  // Dummy Members
-  const members = [
-    { _id: 'user_1', username: 'aakrit', name: 'Aakrit Rajput', avatar: '/avatars/aakrit.png' },
-    { _id: 'user_2', username: 'komal', name: 'Komal Singh', avatar: '/avatars/komal.png' },
-    { _id: 'user_3', username: 'karan', name: 'Karan Rajput', avatar: '/avatars/karan.png' },
-    { _id: 'user_4', username: 'anjana', name: 'Anjana Devi', avatar: '/avatars/anjana.png' },
-    { _id: 'user_5', username: 'karmi', name: 'Karmi Devi', avatar: '/avatars/karmi.png' },
-  ];
+  const hasFetched = useRef({
+    friends: false,
+    groupTask:false,
+    members: false,
+  })
 
-  // Dummy Join Requests (only for public & admin)
-  const joinRequests = [
-    { _id: 'req_1', username: 'ravi', name: 'Ravi Kumar' },
-    { _id: 'req_2', username: 'neha', name: 'Neha Sharma' },
-  ];
+  useEffect(() => {
+     if(friendsStatus == 'Loading' && !hasFetched.current.friends){
+        hasFetched.current.friends = true;
+        async function getFriends(){
+        try {
+          const response = await axios.get('http://localhost:5000/api/user/getFriends', {withCredentials: true})
+          dispatch(addFriends(response.data.data))
+        } catch (error) {
+          console.log('error: ', error)
+          dispatch(errorOnFriends())
+        }
+      }
+      getFriends();
+      }
+      if(groupTaskStatus == 'Loading' && !hasFetched.current.groupTask){
+        hasFetched.current.groupTask = true;
+        async function getGroupTasks(){
+        try {
+          const response = await axios.get('http://localhost:5000/api/groupTask/myGroupTasks', {withCredentials: true})
+          dispatch(addGroupTasks(response.data.data))
+        } catch (error) {
+          console.log('error: ', error)
+          dispatch(errorOnGrouptasks())
+        }
+      }
+      getGroupTasks();
+      }
+      if(membersLoading && !hasFetched.current.members){
+        hasFetched.current.members = true;
+        async function getMembersOfTasks(){
+        try {
+          const response = await axios.get(`http://localhost:5000/api/groupTask/groupTaskMembers/${id}`, {withCredentials: true})
+          setMembers(response.data.data)
+        } catch (error) {
+          console.log('error: ', error)
+          if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+            setMembersError(error.response.data.message)
+          }else {
+            setMembersError("There was some error while loading this task's members !!")
+          }
+        }finally{
+          setMembersLoading(false);
+        }
+      }
+      getMembersOfTasks();
+      }
+  })
 
   const taskCompletionHandler = () => {};
   const handleTaskEnd = () => {};
-  const requestHandler = (response: 'accept' | 'reject') => { console.log(response)};
-  const onEdit = (data: GroupTaskFormData & { members: Member['id'][] }) => {console.log(data)};
+  const onEdit = async(data: GroupTaskFormData & { members: Member['_id'][] }) => {
+    const prev_data = {...currentGroupTask}
+    try {
+      dispatch(editGroupTask({...prev_data, ...data} as groupTaskType));
+      setMembers(prev => {
+        // Retain existing members whose _id is still in data.members
+        const retainedMembers = prev.filter(member => data.members.includes(member._id));
+      
+        // Find new member IDs that are not in prev
+        const prevIds = prev.map(m => m._id);
+        const newMemberIds = data.members.filter(id => !prevIds.includes(id));
+      
+        // Get the full member objects from friends for the new IDs
+        const newMembers = friends.filter(f => newMemberIds.includes(f._id));
+      
+        // Merge retained + new members
+        return [...retainedMembers, ...newMembers];
+      });
 
-  const isAdmin = currentGroupTask.creatorId === userId;
+      await axios.post(`http://localhost:5000/api/groupTask/editGroupTask/${id}`, data, {withCredentials: true})
+    } catch (error) {
+      dispatch(editGroupTask(prev_data as groupTaskType)); // we will again refresh the store with prev. data itself on error !!
+      if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+        alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
+      }else {
+        alert("There was some Error while updating your group Task !! - Need to refresh the whole page.. ")
+      }
+      window.location.reload()
+    }
+  };
+
+  const isAdmin = currentGroupTask?.creatorId === userId;
 
   const glassClass =
     'backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-lg p-5';
@@ -132,122 +144,267 @@ export default function GroupTaskPage() {
   return (
     <main className="min-h-screen bg-transparent text-white p-6">
       <section className="md:px-6 mx-auto space-y-10">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold">{currentGroupTask.title}</h1>
-          {isAdmin && (
-            <div className="flex gap-3">
-              <button onClick={() => setModalOpen(true)} className="px-4 py-2 cursor-pointer bg-blue-600 rounded-xl hover:bg-blue-700 transition">
-                Edit
-              </button>
-              <button className="px-4 py-2 cursor-pointer bg-red-600 rounded-xl hover:bg-red-700 transition">
-                Delete
-              </button>
+        {/* --- Loading State (whole page skeleton) --- */}
+        {groupTaskStatus === 'Loading' && (
+          <div className="space-y-6">
+            {/* Header skeleton */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="h-8 w-1/3 rounded-md bg-white/20 shimmer" />
+              <div className="h-9 w-28 rounded-2xl bg-white/10 shimmer" />
             </div>
-          )}
-        </div>
-
-        {/* Details Card */}
-        <div>
-          <p className="text-gray-200 leading-relaxed p-2 border-b-[1px] border-b-gray-400 flex gap-2">{currentGroupTask.winners.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}{currentGroupTask.description}</p>
-          <div className="flex flex-wrap backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-lg p-5  justify-between gap-5 mt-4 w-full text-sm">
-            <div className='flex flex-wrap gap-3'>
-              <p><span className="font-medium text-[#0e8bb4]">Due:</span> {new Date(currentGroupTask.dueDate).toLocaleDateString()}</p>
-              <p><span className="font-medium text-gray-400"><ImportanceBadge importance={currentGroupTask.importance as groupTaskType['importance']}/></span></p>
-            </div>
-            <div className='flex flex-wrap gap-3'>
-              <p className='text-black'>{currentGroupTask.type == 'public' ? <LockOpen/> : <Lock/>}</p>
-              <p className={`${currentGroupTask.status == 'completed' ? 'text-green-400': 'text-yellow-300'} text-2xl`}>{currentGroupTask.status == 'completed' ? 'Completed' : 'Ongoing'}</p>
-            </div>
-            
-          </div>
-        </div>
-
-        <div className='flex justify-between gap-2'> {/* In future we can here allow user to mark uncompleted if they accidently marked completed but for now we will show them a warning that they cannot redo this action and hence only mark as completed */}
-          <button onClick={taskCompletionHandler} disabled={currentGroupTask.winners.includes(userId ?? '') } className={`px-6 py-3 ${currentGroupTask.winners.includes(userId ?? '') ? 'cursor-not-allowed bg-gray-700 hover:bg-gray-800' : 'cursor-pointer bg-green-600 hover:bg-green-700'} rounded-xl text-lg font-medium transition`}>
-            {currentGroupTask.winners.includes(userId ?? '') ? 'Completed' : 'Mark Complete'}
-          </button>
-          {isAdmin && currentGroupTask.status == 'ongoing' && <button onClick={handleTaskEnd} className='rounded-xl text-lg font-medium bg-green-500 cursor-pointer p-4'>Finish Group Task</button>}
-        </div>
-
-        {/* Winners */}
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Winners 👑</h2>
-            <div className="flex gap-4 overflow-y-visible pt-9 overflow-x-auto">
-              {currentGroupTask.winners.map((winnerId, idx) => {
-                const user = members.find((m) => m._id === winnerId);
-                return (
-                  <div key={idx} className={`bg-gradient-to-l from-[#ff00004d] flex relative p-5 shadow-lg rounded-lg border-2 items-center gap-3`}>
-                    <h1 className={`absolute left-0 text-bold ${idx == 0 ? 'text-yellow-300' : idx == 1 ? 'text-gray-300' : idx == 2 ? 'text-[#9b6060]' : 'text-amber-100'} text-4xl top-[-40]`}>{idx + 1}</h1>
-                    <Image
-                      width={30}
-                      height={30}
-                      src={user?.avatar || '/profile/default_profile_pic.png'}
-                      alt={user?.name || ''}
-                      className="w-12 h-12 rounded-full border border-white/30"
-                    />
-                    <p className="font-medium">{user?.name}</p>
+        
+            {/* Details card skeleton */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-white/6 to-white/3 backdrop-blur-3xl border border-white/10">
+              <div className="space-y-3">
+                <div className="h-5 w-3/4 rounded bg-white/10 shimmer" />
+                <div className="h-4 w-full rounded bg-white/8 shimmer" />
+                <div className="flex justify-between mt-4">
+                  <div className="space-y-2">
+                    <div className="h-4 w-40 rounded bg-white/8 shimmer" />
+                    <div className="h-4 w-24 rounded bg-white/8 shimmer" />
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        {currentGroupTask.winners.includes(userId ?? '') && <h1>Your Rank: <span>{currentGroupTask.winners.indexOf(userId ?? '') + 1}</span></h1>}
-
-          {/* Requests Section (only for admin & public) */}
-        {isAdmin && currentGroupTask.type === 'public' && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-3">Join Requests</h2>
-            <div className="space-y-3">
-              {joinRequests.map((req) => (
-                <div
-                  key={req._id}
-                  className={`${glassClass} flex gap-2 justify-between items-center`}
-                >
-                  <div>
-                    <p className="font-semibold">{req.name}</p>
-                    <p className="text-sm text-gray-300">@{req.username}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => requestHandler('accept')} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded-lg">
-                      Accept
-                    </button>
-                    <button onClick={() => requestHandler('reject')} className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-lg">
-                      Reject
-                    </button>
+                  <div className="space-y-2">
+                    <div className="h-6 w-20 rounded bg-white/8 shimmer" />
+                    <div className="h-6 w-28 rounded bg-white/8 shimmer" />
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+        
+            {/* Buttons skeleton */}
+            <div className="flex gap-2">
+              <div className="h-12 w-40 rounded-xl bg-white/10 shimmer" />
+              <div className="h-12 w-44 rounded-xl bg-white/10 shimmer" />
+            </div>
+        
+            {/* Winners skeleton */}
+            <div>
+              <div className="h-6 w-64 rounded bg-white/10 shimmer mb-4" />
+              <div className="flex gap-4 overflow-x-auto">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-40 h-24 rounded-lg p-4 glass-card animate-pulse border border-white/10">
+                    <div className="h-10 w-10 rounded-full bg-white/10 shimmer mb-3" />
+                    <div className="h-4 w-28 rounded bg-white/8 shimmer" />
+                  </div>
+                ))}
+              </div>
+            </div>
+              
+            {/* Members skeleton */}
+            <div>
+              <div className="h-6 w-48 rounded bg-white/10 shimmer mb-4" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className={`${glassClass} text-center p-4`}>
+                    <div className="w-16 h-16 mx-auto rounded-full bg-white/10 shimmer mb-3" />
+                    <div className="h-4 w-24 mx-auto rounded bg-white/8 shimmer" />
+                    <div className="h-3 w-20 mx-auto rounded bg-white/8 shimmer mt-2" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
-          
-        {/* Members Section */}
-        <div
-          className="space-y-4"
-        >
-          <h2 className="text-2xl font-semibold">Group Members</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-            {members.map((member) => (
-              <div
-                key={member._id}
-                className={`${glassClass} text-center hover:bg-white/20 transition`}
-              >
-                <Image
-                  width={30}
-                  height={30}
-                  src='/TaskMaa_AI.png'
-                  alt={member.name}
-                  className="w-16 h-16 mx-auto rounded-full border border-white/30 object-cover"
-                />
-                <p className="mt-3 font-semibold text-lg">{member.name}</p>
-                <p className="text-sm text-gray-300">@{member.username}</p>
-              </div>
-            ))}
+
+        {/* --- Error fetching group task --- */}
+        {groupTaskStatus === 'Error' && (
+          <div className="py-12 text-center">
+            <h2 className="text-2xl font-semibold mb-2">Something went wrong</h2>
+            <p className="text-gray-300">There was an error fetching your group task. Please try again later.</p>
           </div>
-        </div>
+        )}
+
+        {/* --- Fetched but no task found --- */}
+        {groupTaskStatus === 'Fetched' && !currentGroupTask && (
+          <div className="py-12 text-center">
+            <h2 className="text-2xl font-semibold mb-2">Task not found</h2>
+            <p className="text-gray-300">No group task exists with the given id.</p>
+          </div>
+        )}
+
+        {/* --- Error when fetching members --- */}
+        {membersError && (
+          <div className="py-12 text-center">
+            <h2 className="text-2xl font-semibold mb-2">Task not found</h2>
+            <p className="text-gray-300">No group task exists with the given id.</p>
+          </div>
+        )}
+
+        {/* --- Real content when fetched and task exists --- */}
+        {groupTaskStatus === 'Fetched' && !membersError && currentGroupTask && ( // here we are adding the members error check as we don't want to show the UI if we get any error on members
+          <>
+            {/* Header */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h1 className="text-3xl font-bold">{currentGroupTask.title}</h1>
+              {isAdmin && (
+                <div className="flex gap-3"> {/* Just to double check iam also adding the state checks in btn disability */}
+                  <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={() => setModalOpen(true)} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-blue-600 rounded-xl hover:bg-blue-700 transition`}>
+                    Edit
+                  </button>
+                  <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-red-600 rounded-xl hover:bg-red-700 transition`}>
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* Details Card */}
+            <div>
+              <p className="text-gray-200 leading-relaxed p-2 border-b-[1px] border-b-gray-400 flex gap-2">
+                {currentGroupTask.winners?.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}
+                {currentGroupTask.description}
+              </p>
+            
+              <div className="flex flex-wrap backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-lg p-5 justify-between gap-5 mt-4 w-full text-sm">
+                <div className='flex flex-wrap gap-3'>
+                  <p>
+                    <span className="font-medium text-[#0e8bb4]">Due:</span>{' '}
+                    {currentGroupTask.dueDate ? new Date(currentGroupTask.dueDate).toLocaleDateString() : '—'}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-400">
+                      <ImportanceBadge importance={currentGroupTask.importance} />
+                    </span>
+                  </p>
+                </div>
+            
+                <div className='flex flex-wrap gap-3'>
+                  <p className='text-black'>{currentGroupTask.type === 'public' ? <LockOpen/> : <Lock/>}</p>
+                  <p className={`${currentGroupTask.status === 'completed' ? 'text-green-400': 'text-yellow-300'} text-2xl`}>
+                    {currentGroupTask.status === 'completed' ? 'Completed' : 'Ongoing'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Buttons */}
+            <div className='flex justify-between gap-2'>
+              <button
+                onClick={taskCompletionHandler}
+                disabled={currentGroupTask.winners?.includes(userId ?? '') || groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading}
+                className={`px-6 py-3 ${currentGroupTask.winners?.includes(userId ?? '') ? 'cursor-not-allowed bg-gray-700 hover:bg-gray-800' : 'cursor-pointer bg-green-600 hover:bg-green-700'} rounded-xl text-lg font-medium transition`}
+              >
+                {currentGroupTask.winners?.includes(userId ?? '') ? 'Completed' : 'Mark Complete'}
+              </button>
+            
+              {isAdmin && currentGroupTask.status === 'ongoing' && (
+                <button onClick={handleTaskEnd} className='rounded-xl text-lg font-medium bg-green-500 cursor-pointer p-4'>
+                  Finish Group Task
+                </button>
+              )}
+            </div>
+            
+            {/* Winners (memberStatus controls winners/members loading) */}
+            {currentGroupTask.winners.length > 0 && <div>
+              <h2 className="text-2xl font-semibold mb-4">Winners 👑</h2>
+            
+              {membersLoading === true ? (
+                // winners skeleton while members are loading
+                <div className="flex gap-4 overflow-x-auto">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-40 h-24 rounded-lg p-4 glass-card animate-pulse border border-white/10">
+                      <div className="h-10 w-10 rounded-full bg-white/10 shimmer mb-3" />
+                      <div className="h-4 w-28 rounded bg-white/8 shimmer" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // real winners UI
+                <div className="flex gap-4 overflow-y-visible pt-9 overflow-x-auto">
+                  {currentGroupTask.winners.map((winnerId, idx) => {
+                    const user = members.find((m) => m._id === winnerId);
+                    return (
+                      <div key={idx} className={`bg-gradient-to-l from-[#ff00004d] flex relative p-5 shadow-lg rounded-lg border-2 items-center gap-3`}>
+                        <h1 className={`absolute left-0 text-bold ${idx == 0 ? 'text-yellow-300' : idx == 1 ? 'text-gray-300' : idx == 2 ? 'text-[#9b6060]' : 'text-amber-100'} text-4xl top-[-40]`}>{idx + 1}</h1>
+                        <Image
+                          width={30}
+                          height={30}
+                          src={user?.profilePicture || '/profile/default_profile_pic.png'}
+                          alt={user?.name || ''}
+                          className="w-12 h-12 rounded-full border border-white/30"
+                        />
+                        <p className="font-medium">{user?.name}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>}
+            
+            {currentGroupTask.winners?.includes(userId ?? '') && (
+              <h1>Your Rank: <span>{currentGroupTask.winners.indexOf(userId ?? '') + 1}</span></h1>
+            )}
+
+            {/* Members Section */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Members</h2>
+          
+              {membersLoading === true ? (
+                // members skeleton while loading
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className={`${glassClass} text-center p-4`}>
+                      <div className="w-16 h-16 mx-auto rounded-full bg-white/10 shimmer mb-3" />
+                      <div className="h-4 w-24 mx-auto rounded bg-white/8 shimmer" />
+                      <div className="h-3 w-20 mx-auto rounded bg-white/8 shimmer mt-2" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // real members
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                  {members.map((member) => (
+                    <div key={member._id} className={`${glassClass} text-center hover:bg-white/20 transition p-4`}>
+                      <Image
+                        width={30}
+                        height={30}
+                        src={member.profilePicture || '/TaskMaa_AI.png'}
+                        alt={member.name}
+                        className="w-16 h-16 mx-auto rounded-full border border-white/30 object-cover"
+                      />
+                      <p className="mt-3 font-semibold text-lg">{member.name}</p>
+                      <p className="text-sm text-gray-300">@{member.username}</p>
+                      <p className='text-sm text-gray-300'>{member._id == user?._id && '( You )'}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </section>
-      {modalOpen && <TwoStepGroupTaskOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)} publicMembers={publicMembersStranger} editData={defaultData} onSubmit={onEdit} friendsList={friends}/>}
+      
+      {modalOpen && (
+        <TwoStepGroupTaskOverlay
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          publicMembers={publicMembersStranger}
+          editData={defaultData}
+          onSubmit={onEdit}
+          friendsList={friends}
+        />
+      )}
+
+      {/* Shimmer CSS (glow on/off effect) */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { opacity: 0.35; transform: translateY(0); }
+          50% { opacity: 0.95; transform: translateY(-1px); }
+          100% { opacity: 0.35; transform: translateY(0); }
+        }
+        .shimmer {
+          animation: shimmer 1.4s ease-in-out infinite;
+          background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 100%);
+          background-size: 200% 100%;
+        }
+      
+        /* keep your glass-card rules if used elsewhere */
+        .glass-card {
+          background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+          backdrop-filter: blur(10px);
+        }
+      `}</style>
     </main>
+
   );
 }
