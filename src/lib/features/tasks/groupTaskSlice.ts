@@ -79,6 +79,9 @@ const groupTaskSlice = createSlice({
         deleteGroupTask: (state, action: PayloadAction<groupTaskType["_id"]>) => {
             state.groupTasks = state.groupTasks.filter(task => task._id !== action.payload)
         },
+        deletePublicGroupTask: (state, action: PayloadAction<groupTaskType["_id"]>) => {
+            state.publicTasks = state.publicTasks.filter(task => task._id !== action.payload)
+        },
         addNewFriend: (state, action: PayloadAction<friendsType>) => {
             state.friends.push(action.payload)
         },
@@ -88,6 +91,6 @@ const groupTaskSlice = createSlice({
     }
 })
 
-export const {addGroupTasks, addPublicTasks, addFriends, errorOnGrouptasks, errorOnPublictasks, errorOnFriends, addNewGroupTask,updateIdOfNewlyAddedGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
+export const {addGroupTasks, addPublicTasks, addFriends, errorOnGrouptasks, errorOnPublictasks, errorOnFriends, addNewGroupTask, deletePublicGroupTask, updateIdOfNewlyAddedGroupTask, editGroupTask, deleteGroupTask, addNewFriend, removeFriend} = groupTaskSlice.actions ;
 
 export default groupTaskSlice.reducer ;
