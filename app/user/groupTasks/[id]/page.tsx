@@ -3,7 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/src/lib/store';
-import { CheckCircle2, Lock, LockOpen } from 'lucide-react';
+import { CheckCircle, Lock, LockOpen } from 'lucide-react';
 import { groupTaskType } from '../page';
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
 import { useEffect, useRef, useState } from 'react';
@@ -37,6 +37,8 @@ export default function GroupTaskPage() {
     importance: currentGroupTask?.importance || 'medium',
     members: groupTaskMembers
   }
+
+  console.log('current data: ', currentGroupTask)
 
   const [membersError, setMembersError] = useState<string>('')
 
@@ -96,12 +98,43 @@ export default function GroupTaskPage() {
       }
   })
 
-  const taskCompletionHandler = () => {};
-  const handleTaskEnd = () => {};
-  const onEdit = async(data: GroupTaskFormData & { members: Member['_id'][] }) => {
-    const prev_data = {...currentGroupTask}
+  // NOTE: if on errors we don't want to refresh then one more thing we can do is we will store the data before update in variable like prevTask and onError we will edit the data with prev data itself !!-- but for now i am considering to refresh the page as on refresh also the state will be sync from backend itself !!
+
+  const taskCompletionHandler = async () => {
+    if (!userId || !currentGroupTask) return;
+    const prevTask = currentGroupTask;
+    const newWinners = [...(prevTask.winners || []), userId];
     try {
-      dispatch(editGroupTask({...prev_data, ...data} as groupTaskType));
+      dispatch(editGroupTask({ ...prevTask, winners: newWinners } as groupTaskType));
+      await axios.get(`http://localhost:5000/api/groupTask/markComplete/${id}`, { withCredentials: true });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`);
+      } else {
+        alert("There was some Error while marking your group Task as completed !! - Need to refresh the whole page.. ");
+      }
+      window.location.reload();
+    }
+  };
+
+  const handleTaskEnd = async() => {
+    if (!currentGroupTask) return;
+    try {
+      dispatch(editGroupTask({ ...currentGroupTask, status: 'completed' } as groupTaskType));
+      await axios.get(`http://localhost:5000/api/groupTask/toggleGroupTask/${id}`, { withCredentials: true });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`);
+      } else {
+        alert("There was some Error while toggling your group Task as completed !! - Need to refresh the whole page.. ");
+      }
+      window.location.reload();
+    }
+  };
+
+  const onEdit = async(data: GroupTaskFormData & { members: Member['_id'][] }) => {
+    try {
+      dispatch(editGroupTask({...currentGroupTask, ...data} as groupTaskType));
       setMembers(prev => {
         // Retain existing members whose _id is still in data.members
         const retainedMembers = prev.filter(member => data.members.includes(member._id));
@@ -119,7 +152,6 @@ export default function GroupTaskPage() {
 
       await axios.post(`http://localhost:5000/api/groupTask/editGroupTask/${id}`, data, {withCredentials: true})
     } catch (error) {
-      dispatch(editGroupTask(prev_data as groupTaskType)); // we will again refresh the store with prev. data itself on error !!
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
       }else {
@@ -133,7 +165,6 @@ export default function GroupTaskPage() {
 
   const handleDeleteGroupTask = async() => {
     try {
-      console.log('delete runs !!')
       dispatch(deleteGroupTask(id as groupTaskType['_id']))
       router.push('/user/groupTasks')
       await axios.delete(`http://localhost:5000/api/groupTask/deleteGroupTask/${id}`, {withCredentials: true}) // the api call will still run !!
@@ -236,7 +267,7 @@ export default function GroupTaskPage() {
         {groupTaskStatus === 'Fetched' && !currentGroupTask && (
           <div className="py-12 text-center">
             <h2 className="text-2xl font-semibold mb-2">Task not found</h2>
-            <p className="text-gray-300">No group task exists with the given id.</p>
+            <p className="text-gray-300">No group task exists with the given id. If you consider that it exists in the past then this may be because the admin has deleted the task !!</p>
           </div>
         )}
 
@@ -256,9 +287,9 @@ export default function GroupTaskPage() {
               <h1 className="text-3xl font-bold">{currentGroupTask.title}</h1>
               {isAdmin && (
                 <div className="flex gap-3"> {/* Just to double check iam also adding the state checks in btn disability */}
-                  <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={() => setModalOpen(true)} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-blue-600 rounded-xl hover:bg-blue-700 transition`}>
-                    Edit
-                  </button>
+                {currentGroupTask.status !== 'completed' && <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={() => setModalOpen(true)} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-blue-600 rounded-xl hover:bg-blue-700 transition`}>
+                  Edit
+                </button>}
                   <button disabled={groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading} onClick={handleDeleteGroupTask} className={`px-4 py-2 ${(groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading) ? 'cursor-not-allowed' : 'cursor-pointer'} bg-red-600 rounded-xl hover:bg-red-700 transition`}>
                     Delete
                   </button>
@@ -269,7 +300,7 @@ export default function GroupTaskPage() {
             {/* Details Card */}
             <div>
               <p className="text-gray-200 leading-relaxed p-2 border-b-[1px] border-b-gray-400 flex gap-2">
-                {currentGroupTask.winners?.includes(userId ?? '') && <span className='text-green-500'><CheckCircle2/></span>}
+                {currentGroupTask.winners?.includes(userId ?? '') && <span className='text-green-500'><CheckCircle/></span>}
                 {currentGroupTask.description}
               </p>
             
@@ -297,13 +328,13 @@ export default function GroupTaskPage() {
             
             {/* Buttons */}
             <div className='flex justify-between gap-2'>
-              <button
+              {currentGroupTask.status == 'ongoing' && <button
                 onClick={taskCompletionHandler}
                 disabled={currentGroupTask.winners?.includes(userId ?? '') || groupTaskStatus !== 'Fetched' || friendsStatus !== 'Fetched' || membersLoading}
                 className={`px-6 py-3 ${currentGroupTask.winners?.includes(userId ?? '') ? 'cursor-not-allowed bg-gray-700 hover:bg-gray-800' : 'cursor-pointer bg-green-600 hover:bg-green-700'} rounded-xl text-lg font-medium transition`}
               >
                 {currentGroupTask.winners?.includes(userId ?? '') ? 'Completed' : 'Mark Complete'}
-              </button>
+              </button>}
             
               {isAdmin && currentGroupTask.status === 'ongoing' && (
                 <button onClick={handleTaskEnd} className='rounded-xl text-lg font-medium bg-green-500 cursor-pointer p-4'>
@@ -314,7 +345,8 @@ export default function GroupTaskPage() {
             
             {/* Winners (memberStatus controls winners/members loading) */}
             {currentGroupTask.winners.length > 0 && <div>
-              <h2 className="text-2xl font-semibold mb-4">Winners 👑</h2>
+              <h2 className="text-2xl font-semibold ">Winners 👑</h2>
+              <p className='text-sm pb-2 mb-4 text-gray-400'>Note: It does not show the live updates, You can refresh after some time to see your actual rank - But soon it will be live !!</p>
             
               {membersLoading === true ? (
                 // winners skeleton while members are loading
@@ -330,6 +362,7 @@ export default function GroupTaskPage() {
                 // real winners UI
                 <div className="flex gap-4 overflow-y-visible pt-9 overflow-x-auto">
                   {currentGroupTask.winners.map((winnerId, idx) => {
+                    console.log('winners :', winnerId)
                     const user = members.find((m) => m._id === winnerId);
                     return (
                       <div key={idx} className={`bg-gradient-to-l from-[#ff00004d] flex relative p-5 shadow-lg rounded-lg border-2 items-center gap-3`}>
@@ -341,7 +374,7 @@ export default function GroupTaskPage() {
                           alt={user?.name || ''}
                           className="w-12 h-12 rounded-full border border-white/30"
                         />
-                        <p className="font-medium">{user?.name}</p>
+                        <p className="font-medium">{user?.username}</p>
                       </div>
                     );
                   })}
@@ -371,8 +404,8 @@ export default function GroupTaskPage() {
               ) : (
                 // real members
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-                  {members.map((member) => (
-                    <div key={member._id} className={`${glassClass} text-center hover:bg-white/20 transition p-4`}>
+                  {members.map((member, idx) => (
+                    <div key={idx} className={`${glassClass} text-center hover:bg-white/20 transition p-4`}>
                       <Image
                         width={30}
                         height={30}

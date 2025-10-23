@@ -1,10 +1,11 @@
 'use client'
 
 import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/components/user/GroupTaskModal';
-import { addFriends, addGroupTasks, addNewGroupTask, addPublicTasks, errorOnFriends, errorOnGrouptasks, errorOnPublictasks, updateIdOfNewlyAddedGroupTask } from '@/src/lib/features/tasks/groupTaskSlice';
+import RequestOverlay from '@/src/components/user/RequestOverlay';
+import { addFriends, addGroupTasks, addNewGroupTask, addPublicTasks, deletePublicGroupTask, errorOnFriends, errorOnGrouptasks, errorOnPublictasks, updateIdOfNewlyAddedGroupTask } from '@/src/lib/features/tasks/groupTaskSlice';
 import { RootState } from '@/src/lib/store';
 import axios from 'axios';
-import { Lock, LockOpen } from 'lucide-react';
+import {CheckCircle, Lock, LockOpen } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,7 +36,10 @@ export default function GroupTasksPage() {
     const groupTasks = dataFromStore.groupTasks
 
     const publicGroupTasks = dataFromStore.publicTasks
-    console.log('public group tasks: ', publicGroupTasks)
+
+    const [requesting, setRequesting] = useState<boolean>(false);
+    const [responseFromRequest, setResponseFromRequest] = useState<string>('');
+    const [errorFromRequest, setErrorFromRequest] = useState<string>('');
 
     const hasFetched = useRef({
       friends: false,
@@ -85,7 +89,27 @@ export default function GroupTasksPage() {
       }
     }, [dataFromStore.friendsStatus, dispatch, dataFromStore.groupTaskStatus, dataFromStore.publicTaskStatus])
 
-    const participateHandler = () => {}
+    const participateHandler = async(id: string) => {
+      console.log('participate handler runs !!')
+      const task = publicGroupTasks.find(task => task._id === id);
+      if (!task) return ;
+      setRequesting(true)
+      console.log('it continues..')
+      try {
+        await axios.get(`http://localhost:5000/api/groupTask/participateInPublicGroupTask/${id}`, {withCredentials: true})
+        dispatch(addNewGroupTask({...task}))
+        dispatch(deletePublicGroupTask(task._id))
+        setResponseFromRequest('Congratulations.. You are successfully admitted !!')
+      } catch (error) {
+        if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
+          setErrorFromRequest(`There was some Error: ${error.response.data.message}`)
+        }else {
+          setErrorFromRequest("There was some Error while participating in this group Task !! ")
+        }
+      }finally{
+        setRequesting(false);
+      }
+    }
 
     const onSubmit = async(data: GroupTaskFormData & { members: Member['_id'][] }) => {
       try {
@@ -151,51 +175,57 @@ export default function GroupTasksPage() {
                   <Link
                     href={`/user/groupTasks/${task._id}`}
                     key={task._id}
-                    className="p-5 rounded-2xl bg-gradient-to-br from-white/10 to-[#00ffff27] backdrop-blur-3xl hover:scale-[1.01] transition border border-white/10"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-1">{task.title}</h3>
-                        <p className="text-sm text-white/60 mb-3">{task.description}</p>
-                      </div>
-                      <div className="text-right text-sm">
-                        <span
-                          className={`font-semibold ${
-                            task.status === "completed"
-                              ? "text-green-400"
-                              : "text-yellow-300"
-                          }`}
-                        >
-                          {task.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center mt-4">
-                      <div>
-                        <p className="text-sm text-white/60">
-                          Importance:{" "}
-                          <ImportanceBadge importance={task.importance} />
-                        </p>
-                        <p className="text-sm text-white/60">
-                          Role:{" "}
-                          <span className="text-white">
-                            {task.creatorId === user?._id ? (
-                              <span className="text-[#48de9b]">Admin</span>
-                            ) : (
-                              <span className="text-[#a88aea]">Participant</span>
-                            )}
+                    className="p-5 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-white/10 to-[#00ffff27] backdrop-blur-3xl hover:scale-[1.01] transition border border-white/10"
+                  > 
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-1">{task.title}</h3>
+                          <p className="text-sm text-white/60 mb-3">{task.description && task.description.length > 40 ? task.description?.slice(0, 40) + '...' : task.description }</p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <span
+                            className={`font-semibold ${
+                              task.status === "completed"
+                                ? "text-green-400"
+                                : "text-yellow-300"
+                            }`}
+                          >
+                            {task.status}
                           </span>
-                        </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-4">
+                        <div>
+                          <p className="text-sm text-white/60">
+                            Importance:{" "}
+                            <ImportanceBadge importance={task.importance} />
+                          </p>
+                          <p className="text-sm text-white/60">
+                            Role:{" "}
+                            <span className="text-white">
+                              {task.creatorId === user?._id ? (
+                                <span className="text-[#48de9b]">Admin</span>
+                              ) : (
+                                <span className="text-[#a88aea]">Participant</span>
+                              )}
+                            </span>
+                          </p>
+                          <p className='text-sm text-gray-400'>Due date: {task.dueDate.slice(0, 10)}</p>
+                        </div>
                       </div>
                     </div>
                           
-                    <div className="flex justify-end gap-2 items-center mt-4">
-                      <p className="text-[cyan]">
-                        {task.type == "public" ? <LockOpen /> : <Lock />}
-                      </p>
-                      <button className="px-3 py-1 text-sm rounded bg-gradient-to-r from-indigo-500 to-teal-400 hover:opacity-90 transition">
-                        View
-                      </button>
+                    <div className="flex justify-between px-2 gap-2 items-center mt-4">
+                      {task.winners.includes(user?._id ?? '') && <p className='text-green-400'><CheckCircle/> </p>}
+                      <div className='flex justify-end flex-1  gap-2'>
+                        <p className="text-[cyan]">
+                          {task.type == "public" ? <LockOpen /> : <Lock />}
+                        </p>
+                        <button className="px-3 py-1 text-sm rounded bg-gradient-to-r from-indigo-500 to-teal-400 hover:opacity-90 transition">
+                          View
+                        </button>
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -216,7 +246,7 @@ export default function GroupTasksPage() {
           </h1>
         
           {dataFromStore.publicTaskStatus === 'Loading' ? (
-            // 🔹 Skeleton Loader for Public Tasks
+            // Skeleton Loader for Public Tasks
             <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {[...Array(8)].map((_, i) => (
                 <div
@@ -236,13 +266,14 @@ export default function GroupTasksPage() {
                 {publicGroupTasks.map((task) => (
                   <div
                     key={task._id}
-                    className="p-5 rounded-2xl bg-gradient-to-br from-pink-400/30 to-[#00ffff27] backdrop-blur-3xl hover:scale-[1.01] transition border border-white/10"
+                    className="p-5 rounded-2xl flex flex-col justify-between bg-gradient-to-br from-pink-400/30 to-[#00ffff27] backdrop-blur-3xl hover:scale-[1.01] transition border border-white/10"
                   >
+                   <div>
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-lg font-semibold mb-1">{task.title}</h3>
-                        <p className="text-sm text-white/60 mb-3">
-                          {task.description}
+                        <p className="text-sm text-white/60 mb-2">
+                          {task.description && task.description.length > 40 ? task.description?.slice(0, 40) + '...' : task.description }
                         </p>
                       </div>
                       <div className="text-right text-sm">
@@ -263,12 +294,14 @@ export default function GroupTasksPage() {
                           Importance:{" "}
                           <ImportanceBadge importance={task.importance} />
                         </p>
+                        <p className='text-sm text-gray-400'>Due date: {task.dueDate.slice(0, 10)}</p>
                       </div>
                     </div>
+                   </div>
                         
                     <div className="flex justify-end items-center mt-4">
                       <button
-                        onClick={participateHandler}
+                        onClick={() => participateHandler(task._id)}
                         className="px-3 py-1 text-sm rounded bg-gradient-to-r from-indigo-500 to-teal-400 cursor-pointer hover:opacity-90 transition"
                       >
                         Participate
@@ -285,6 +318,17 @@ export default function GroupTasksPage() {
             </>
           )}
         </div>
+
+        <RequestOverlay 
+        requesting={requesting}
+        responseFromRequest={responseFromRequest}
+        errorFromRequest={errorFromRequest}
+        onClose={() => {
+          setRequesting(false);
+          setResponseFromRequest('');
+          setErrorFromRequest('');
+        }}
+        />
         
         {modalOpen && (
           <TwoStepGroupTaskOverlay
