@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface Message {
+type Message = {
     id: string;
     chatId: string;
     senderId: string;
@@ -10,33 +10,54 @@ interface Message {
     status: 'sent' | 'delivered' | 'read';
 }
 
-interface ChatState {
-    messages: Message[];
+type chatType = {
+    _id: string;
+    isGroupChat: boolean;
+    users: [
+      {
+        user: {
+            _id: string;
+            username: string;
+            profilePicture: string;
+        },
+        role: 'participant' | 'admin'
+      }
+    ];
+    lastMessage: {
+        text: string;
+        senderId: string;
+        timestamp: string;
+    };
+    groupName?: string;
+    messages?: Message[];
 }
 
-const initialState: ChatState = {
-    messages: [],
+type ChatStateType = {
+    chats: chatType[];
+    initialchatsLoadingStatus: 'Loading' | 'Fetched' | 'Error';
+};
+
+const initialState: ChatStateType = {
+    chats: [],
+    initialchatsLoadingStatus: 'Loading',
 };
 
 const chatSlice = createSlice({
     name: 'chat',
     initialState,
     reducers: {
-        addMessage: (state, action: PayloadAction<Message>) => {
-            state.messages.push(action.payload);
+        addInitialChats: (state, action: PayloadAction<chatType[]>) => {
+            state.chats = action.payload;
+            state.initialchatsLoadingStatus = 'Fetched';
         },
-        setOfflineMessages: (state, action: PayloadAction<Message[]>) => {
-            state.messages.push(...action.payload);
-        },
-        updateMessageStatus: (
-            state,
-            action: PayloadAction<{ messageId: string; status: 'delivered' | 'read' }>
-        ) => {
-            const msg = state.messages.find((m) => m.id === action.payload.messageId);
-            if (msg) msg.status = action.payload.status;
+        addMessagesToChat: (state, action: PayloadAction<{chatId: string; messages: chatType['messages']}>) => {
+            const chat = state.chats.find(c => c._id === action.payload.chatId);
+            if (chat) {
+                chat.messages = action.payload.messages;
+            }
         },
     },
 });
 
-export const { addMessage, setOfflineMessages, updateMessageStatus } = chatSlice.actions;
+export const { addInitialChats, addMessagesToChat } = chatSlice.actions;
 export default chatSlice.reducer;
