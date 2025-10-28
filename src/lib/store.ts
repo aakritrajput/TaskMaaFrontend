@@ -2,7 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/AuthSlice";
 import taskReducer from "./features/tasks/TaskSlice";
 import groupTaskReducer from "./features/tasks/groupTaskSlice";
-import statsReducer from "./features/stats/statSlice"
+import statsReducer from "./features/stats/statSlice";
+import chatReducer from "./features/chat/ChatSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     tasks: taskReducer,
     groupTask: groupTaskReducer,
     stats: statsReducer,
+    chat: chatReducer,
   },
 });
 

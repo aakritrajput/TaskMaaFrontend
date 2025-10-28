@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Socket } from 'socket.io-client';
 
-type Message = {
+export type Message = {
     id: string;
     chatId: string;
     senderId: string;
@@ -35,11 +36,15 @@ type chatType = {
 type ChatStateType = {
     chats: chatType[];
     initialchatsLoadingStatus: 'Loading' | 'Fetched' | 'Error';
+    socketRef: Socket | null;
+    offlineMessages?: number;
 };
 
 const initialState: ChatStateType = {
     chats: [],
     initialchatsLoadingStatus: 'Loading',
+    socketRef: null,
+    offlineMessages: 0,
 };
 
 const chatSlice = createSlice({
@@ -56,8 +61,29 @@ const chatSlice = createSlice({
                 chat.messages = action.payload.messages;
             }
         },
+        appendMessage: (state, action: PayloadAction<{chatId: string; message: Message}>) => {
+            const chat = state.chats.find(c => c._id === action.payload.chatId)
+            if (chat) {
+                chat.messages?.push(action.payload.message)
+            }
+        },
+        setOfflineMessages: (state, action: PayloadAction<{messages: chatType['messages']}>) => {
+            // for now we will go simplest and will only count the numebr of messages but in future for seperate chats we can implement seperate counts !!
+            if(!action.payload.messages) return;
+
+            state.offlineMessages = action.payload.messages.length
+        },
+        updateMessageStatus: (state, action: PayloadAction<{ chatId: string; messageId: string; status: 'sent' | 'delivered' | 'read' }>) => {
+            const chat = state.chats.find(chat => chat._id === action.payload.chatId)
+            if (chat?.messages) {
+                const message = chat.messages.find(msg => msg.id === action.payload.messageId)
+                if(message){
+                    message.status = action.payload.status
+                }
+            }
+        }
     },
 });
 
-export const { addInitialChats, addMessagesToChat } = chatSlice.actions;
+export const { addInitialChats, addMessagesToChat, appendMessage,  setOfflineMessages, updateMessageStatus} = chatSlice.actions;
 export default chatSlice.reducer;
