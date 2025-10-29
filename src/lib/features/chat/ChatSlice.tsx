@@ -11,7 +11,7 @@ export type Message = {
     status: 'sent' | 'delivered' | 'read';
 }
 
-type chatType = {
+export type chatType = {
     _id: string;
     isGroupChat: boolean;
     users: [
@@ -70,8 +70,13 @@ const chatSlice = createSlice({
         setOfflineMessages: (state, action: PayloadAction<{messages: chatType['messages']}>) => {
             // for now we will go simplest and will only count the numebr of messages but in future for seperate chats we can implement seperate counts !!
             if(!action.payload.messages) return;
-
             state.offlineMessages = action.payload.messages.length
+            for(const message of action.payload.messages){
+                const requiredChat = state.chats.find(chat => chat._id === message.chatId)
+                if(requiredChat){
+                    requiredChat.messages?.push(message)
+                }
+            }
         },
         updateMessageStatus: (state, action: PayloadAction<{ chatId: string; messageId: string; status: 'sent' | 'delivered' | 'read' }>) => {
             const chat = state.chats.find(chat => chat._id === action.payload.chatId)
