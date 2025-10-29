@@ -1,13 +1,23 @@
 // src/app/chat/hooks/useSocket.ts
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useDispatch } from 'react-redux';
-import { addInitialChats, appendMessage, setOfflineMessages, updateMessageStatus } from '@/src/lib/features/chat/ChatSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addInitialChats, appendMessage, Message, setOfflineMessages, updateMessageStatus } from '@/src/lib/features/chat/ChatSlice';
 import axios from 'axios';
+import { RootState } from '@/src/lib/store';
 
 export const useSocket = (userId: string) => {
   const socketRef = useRef<Socket | null>(null);
   const dispatch = useDispatch();
+  const initialchatsLoadingStatus = useSelector((state: RootState) => state.chat.initialchatsLoadingStatus)
+  const [offlineMessagesHere, setOfflineMessagesHere] = useState<Message[]>([]);
+
+  useEffect(() => {
+    if(initialchatsLoadingStatus == 'Fetched' && offlineMessagesHere.length > 0){
+      dispatch(setOfflineMessages({messages: offlineMessagesHere}))
+      setOfflineMessagesHere([])
+    }
+  }, [initialchatsLoadingStatus, dispatch, offlineMessagesHere])
 
   useEffect(() => {
     if (!userId) return;
@@ -36,7 +46,7 @@ export const useSocket = (userId: string) => {
 
     // when offline messages arrive
     socket.on('offline-messages', (messages) => {
-      dispatch(setOfflineMessages(messages));
+      setOfflineMessagesHere(messages);
     });
 
     // when receiving a new message
@@ -48,6 +58,10 @@ export const useSocket = (userId: string) => {
         senderId: message.senderId,
       });
     });
+
+    socket.on('message_sent', (message) => {
+      dispatch(appendMessage({chatId: message.chatId, message}))
+    })
 
     // when message is marked delivered or read
     socket.on('message_delivered', ({ chatId, messageId }) => {
