@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, ListChecks, Users, MessageSquare, HeartHandshake } from "lucide-react";
+import { LayoutGrid, ListChecks, Users, MessageSquare, UserRoundCheck } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/src/lib/store";
 
@@ -10,7 +10,7 @@ const navItems = [
   { name: "Tasks", href: "/user/tasks", icon: ListChecks },
   { name: "Group Tasks", href: "/user/groupTasks", icon: Users },
   { name: "Chat", href: "/user/chat", icon: MessageSquare },
-  { name: "Maa", href: "/user/maa", icon: HeartHandshake },
+  { name: "Search", href: "/user/search", icon: UserRoundCheck },
 ];
 
 export default function SideOrDownBar() {
