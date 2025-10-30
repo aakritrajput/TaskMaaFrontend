@@ -16,7 +16,7 @@ type groupTaskType = {
     updatedAt?: string;
 }
 
-type friendsType = {
+export type friendsType = {
     _id: string;
     name: string;
     username: string;

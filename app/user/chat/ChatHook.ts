@@ -51,6 +51,7 @@ export const useSocket = (userId: string) => {
 
     // when receiving a new message
     socket.on('recieve-message', (message) => {
+      console.log('recieved message')
       dispatch(appendMessage({chatId: message.chatId, message}));
       socket.emit('delivered_ack', {
         messageId: message.id,
@@ -69,7 +70,8 @@ export const useSocket = (userId: string) => {
     });
 
     socket.on('messages_read', ({ chatId, messageIds }) => {
-      messageIds.forEach((id: string) => dispatch(updateMessageStatus({ chatId , messageId: id, status: 'read' })));
+      console.log('messages are read !!', messageIds)
+      messageIds.forEach((id: string) => dispatch(updateMessageStatus({ chatId , messageId: id, status: 'seen' })));
     });
 
     return () => {
