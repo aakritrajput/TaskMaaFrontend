@@ -8,7 +8,7 @@ export type Message = {
     recieverId?: string;
     content: string;
     timestamp: number;
-    status: 'sent' | 'delivered' | 'read';
+    status: 'sent' | 'delivered' | 'seen';
 }
 
 export type chatType = {
@@ -64,7 +64,8 @@ const chatSlice = createSlice({
         appendMessage: (state, action: PayloadAction<{chatId: string; message: Message}>) => {
             const chat = state.chats.find(c => c._id === action.payload.chatId)
             if (chat) {
-                chat.messages?.push(action.payload.message)
+                chat.messages?.push({...action.payload.message, status: 'delivered'})
+                chat.lastMessage = {text: action.payload.message.content, senderId: action.payload.message.senderId, timestamp: String(action.payload.message.timestamp)}
             }
         },
         setOfflineMessages: (state, action: PayloadAction<{messages: chatType['messages']}>) => {
@@ -78,7 +79,7 @@ const chatSlice = createSlice({
                 }
             }
         },
-        updateMessageStatus: (state, action: PayloadAction<{ chatId: string; messageId: string; status: 'sent' | 'delivered' | 'read' }>) => {
+        updateMessageStatus: (state, action: PayloadAction<{ chatId: string; messageId: string; status: 'sent' | 'delivered' | 'seen' }>) => {
             const chat = state.chats.find(chat => chat._id === action.payload.chatId)
             if (chat?.messages) {
                 const message = chat.messages.find(msg => msg.id === action.payload.messageId)
@@ -86,9 +87,12 @@ const chatSlice = createSlice({
                     message.status = action.payload.status
                 }
             }
+        },
+        addNewChat: (state, action: PayloadAction<chatType>) => {
+            state.chats = [action.payload, ...state.chats]
         }
     },
 });
 
-export const { addInitialChats, addMessagesToChat, appendMessage,  setOfflineMessages, updateMessageStatus} = chatSlice.actions;
+export const { addInitialChats, addMessagesToChat, appendMessage,  setOfflineMessages, updateMessageStatus, addNewChat} = chatSlice.actions;
 export default chatSlice.reducer;
