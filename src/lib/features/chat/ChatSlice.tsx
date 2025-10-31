@@ -36,6 +36,7 @@ export type chatType = {
 type ChatStateType = {
     chats: chatType[];
     initialchatsLoadingStatus: 'Loading' | 'Fetched' | 'Error';
+    currentChatId: string | null ;
     socketRef: Socket | null;
     offlineMessages?: number;
 };
@@ -43,6 +44,7 @@ type ChatStateType = {
 const initialState: ChatStateType = {
     chats: [],
     initialchatsLoadingStatus: 'Loading',
+    currentChatId: null,
     socketRef: null,
     offlineMessages: 0,
 };
@@ -61,10 +63,14 @@ const chatSlice = createSlice({
                 chat.messages = action.payload.messages;
             }
         },
-        appendMessage: (state, action: PayloadAction<{chatId: string; message: Message}>) => {
+        updateCurrentChat: (state, action: PayloadAction<{chatId: string;}>) => {
+            state.currentChatId = action.payload.chatId
+        },
+        appendMessage: (state, action: PayloadAction<{userId: string; chatId: string; message: Message}>) => {
             const chat = state.chats.find(c => c._id === action.payload.chatId)
             if (chat) {
-                chat.messages?.push({...action.payload.message, status: 'delivered'})
+                const status = action.payload.message.senderId === action.payload.userId ? 'sent' : 'delivered' ;
+                chat.messages?.push({...action.payload.message, status})
                 chat.lastMessage = {text: action.payload.message.content, senderId: action.payload.message.senderId, timestamp: String(action.payload.message.timestamp)}
             }
         },
@@ -94,5 +100,5 @@ const chatSlice = createSlice({
     },
 });
 
-export const { addInitialChats, addMessagesToChat, appendMessage,  setOfflineMessages, updateMessageStatus, addNewChat} = chatSlice.actions;
+export const { addInitialChats, addMessagesToChat, appendMessage, updateCurrentChat,  setOfflineMessages, updateMessageStatus, addNewChat} = chatSlice.actions;
 export default chatSlice.reducer;
