@@ -11,7 +11,7 @@ export const useSocket = (userId: string) => {
   const dispatch = useDispatch();
   const initialchatsLoadingStatus = useSelector((state: RootState) => state.chat.initialchatsLoadingStatus)
   const [offlineMessagesHere, setOfflineMessagesHere] = useState<Message[]>([]);
-
+  
   useEffect(() => {
     if(initialchatsLoadingStatus == 'Fetched' && offlineMessagesHere.length > 0){
       dispatch(setOfflineMessages({messages: offlineMessagesHere}))
@@ -44,15 +44,23 @@ export const useSocket = (userId: string) => {
 
     socketRef.current = socket;
 
+    console.log('connected socket: ', socketRef.current)
     // when offline messages arrive
     socket.on('offline-messages', (messages) => {
       setOfflineMessagesHere(messages);
+      for(const msg of messages){
+        socket.emit('delivered_ack', {
+          messageId: msg.id,
+          chatId: msg.chatId,
+          senderId: msg.senderId,
+        })
+      }
     });
 
     // when receiving a new message
     socket.on('recieve-message', (message) => {
-      console.log('recieved message')
-      dispatch(appendMessage({chatId: message.chatId, message}));
+      dispatch(appendMessage({userId, chatId: message.chatId, message}));
+      console.log('recieved message: ', message)
       socket.emit('delivered_ack', {
         messageId: message.id,
         chatId: message.chatId,
@@ -61,7 +69,7 @@ export const useSocket = (userId: string) => {
     });
 
     socket.on('message_sent', (message) => {
-      dispatch(appendMessage({chatId: message.chatId, message}))
+      dispatch(appendMessage({userId, chatId: message.chatId, message}))
     })
 
     // when message is marked delivered or read
@@ -70,7 +78,6 @@ export const useSocket = (userId: string) => {
     });
 
     socket.on('messages_read', ({ chatId, messageIds }) => {
-      console.log('messages are read !!', messageIds)
       messageIds.forEach((id: string) => dispatch(updateMessageStatus({ chatId , messageId: id, status: 'seen' })));
     });
 
