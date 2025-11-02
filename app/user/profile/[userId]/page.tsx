@@ -167,13 +167,16 @@ const StrangerProfilePage = () => {
     >
       <div className="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl shadow-lg p-6 text-center border border-white/10">
         {/* Profile Image */}
-        <Image
-          src={profilePicture ? profilePicture : "/profile/default_profile_pic.png"}
-          alt="Profile Picture"
-          width={100}
-          height={100}
-          className="mx-auto rounded-full border-2 border-cyan-300"
-        />
+        <div className="w-28 h-28 mx-auto rounded-full border-cyan-300 border-2 overflow-hidden">
+           <Image
+             src={profilePicture ? profilePicture : "/profile/default_profile_pic.jpg"}
+             alt="Profile Picture"
+             width={130}
+             height={130}
+             className="object-cover rounded-full border-2"
+           />
+        </div>
+       
 
         {/* Name + Username */}
         <div className="mt-4">

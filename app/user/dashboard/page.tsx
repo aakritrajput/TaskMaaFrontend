@@ -4,6 +4,8 @@ import { addLeaderBoard, addPerformance, errorGettingLeaderBoard, errorGettingPe
 import { addDailyTasks, addGeneralTasks, errorGettingDailyTasks, errorGettingGeneralTasks } from "@/src/lib/features/tasks/TaskSlice";
 import { RootState } from "@/src/lib/store";
 import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -136,6 +138,8 @@ export default function TaskMaaDashboard() {
     { name: "InProgress", value: total - completed }
   ];
 
+  const user = useSelector((state: RootState) => state.auth.user)
+
   const hasFetched = useRef({
     daily: false, 
     general: false,
@@ -207,7 +211,7 @@ export default function TaskMaaDashboard() {
         <header className="mb-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Good Morning, Aakrit 👋</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">Hey, {user?.name ? user.name : user?.username} 👋</h1>
               <p className="mt-1 text-sm text-white/70">Welcome bache — I hope you are all set for today !!</p>
             </div>
           </div>
@@ -406,7 +410,7 @@ export default function TaskMaaDashboard() {
           
          {/* Leaderboard */}
          <aside className="rounded-2xl p-4 bg-gradient-to-br from-emerald-500/6 via-sky-500/5 to-teal-400/4 border border-white/6 backdrop-blur-xl">
-           <div className="flex items-center justify-between">
+           <div className="flex items-center gap-2 justify-between">
              <h3 className="text-lg font-semibold">Leaderboard</h3>
              <div className="text-sm text-white/60">Top performers</div>
            </div> 
@@ -418,17 +422,20 @@ export default function TaskMaaDashboard() {
             :
             leaderboardStatus == 'Fetched' ? 
             <div className="mt-4 space-y-3">
-             {leaderboard && leaderboard.length > 0 ? leaderboard?.map((l, idx) => (
-               <div key={l._id} className={`flex items-center gap-5 justify-between p-3 rounded-lg ${idx < 3 ? "bg-gradient-to-r from-yellow-400/10 to-green-400/8" : "bg-white/3"}`}>
+              <p className="text-sm text-gray-400 text-wrap p-2">Note: The leaderboard updates twice a day.</p>
+             {leaderboard && leaderboard.length > 0 ? leaderboard.map((l, idx) => (
+               <Link href={`/user/profile/${l._id}`} key={l._id} className={`flex items-center gap-5 justify-between p-3 rounded-lg ${idx < 3 ? "bg-gradient-to-r from-yellow-400/10 to-green-400/8" : "bg-white/3"}`}>
                  <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-green-400 flex items-center justify-center text-sm font-semibold">{l.userName}</div>
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <Image src={l.profilePicture ?? '/profile/default_profile_pic.jpg'} alt="Profile Pic" height={50} width={50}  className="object-cover"/>
+                  </div>
+                   
                    <div>
-                     <div className="font-medium">{l.userName}</div>
+                     <div className="font-medium">{l.username}</div>
                      <div className="text-xs text-white/60">Score: {l.overallScore}</div>
                    </div>
                  </div>
-                 <div className="text-sm font-semibold">{l.overallScore}</div>
-               </div>
+               </Link>
              ))
              :
              <div className="text-gray-500 flex items-start justify-center text-center p-2">No users on leaderBoard..</div>

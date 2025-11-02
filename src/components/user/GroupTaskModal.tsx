@@ -267,7 +267,7 @@ export default function TwoStepGroupTaskOverlay({
                     {membersExcludingMe.length === 0 && <div className="text-sm text-slate-400">No members added yet</div>}
                     {membersExcludingMe.map((m) => (
                       <div key={m._id} className="flex items-center gap-2 bg-[rgba(255,255,255,0.03)] px-3 py-1 rounded-full">
-                        <Image width={20} height={20} src={m.profilePicture ? m.profilePicture : '/profile/default_profile_pic.png'} alt={m.name} className="w-6 h-6 rounded-full" />
+                        <Image width={20} height={20} src={m.profilePicture ? m.profilePicture : '/profile/default_profile_pic.jpg'} alt={m.name} className="w-6 h-6 rounded-full" />
                         <span className="text-sm text-slate-200">{m.name}</span>
                         <button onClick={() => removeMember(m._id)} className="ml-2 text-xs text-red-300">✕</button>
                       </div>
@@ -281,7 +281,7 @@ export default function TwoStepGroupTaskOverlay({
                         return (
                           <div key={idx} className="flex items-center justify-between bg-[rgba(255,255,255,0.02)] p-3 rounded-xl">
                             <div className="flex items-center gap-3">
-                              <Image width={30} height={30} src={member.profilePicture ? member.profilePicture : '/profile/default_profile_pic.png'} alt={member.name} className="w-10 h-10 rounded-full" />
+                              <Image width={30} height={30} src={member.profilePicture ? member.profilePicture : '/profile/default_profile_pic.jpg'} alt={member.name} className="w-10 h-10 rounded-full" />
                               <div>
                                 <div className="text-slate-200 font-medium">{member.name}</div>
                                 <div className="text-xs text-slate-400">@{member.username} {member.isFriend ? "(friend)" : "(public)"}</div>

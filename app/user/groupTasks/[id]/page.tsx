@@ -370,7 +370,7 @@ export default function GroupTaskPage() {
                         <Image
                           width={30}
                           height={30}
-                          src={user?.profilePicture || '/profile/default_profile_pic.png'}
+                          src={user?.profilePicture || '/profile/default_profile_pic.jpg'}
                           alt={user?.name || ''}
                           className="w-12 h-12 rounded-full border border-white/30"
                         />

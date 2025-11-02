@@ -13,7 +13,7 @@ export type PerformanceType = { // same type as in maiin dashboard
 
 type LeaderboardType = {
   _id: string;
-  userName: string;
+  username: string;
   profilePicture?: string; // url
   overallScore: number;
 };

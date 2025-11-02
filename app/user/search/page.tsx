@@ -77,7 +77,7 @@ export default function UserSearch() {
               className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-all"
             >
               <Image
-                src={user.profilePicture || "/profile/default_profile_pic.png"}
+                src={user.profilePicture || "/profile/default_profile_pic.jpg"}
                 alt={user.username}
                 width={40}
                 height={40}

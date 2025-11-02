@@ -253,7 +253,7 @@ export default function ChatPage() {
                   width={50}
                   height={50}
                   src={
-                    user?.profilePicture || "/profile/default_profile_pic.png"
+                    user?.profilePicture || "/profile/default_profile_pic.jpg"
                   }
                   alt="profile"
                   className="w-12 h-12 rounded-full border border-white/10"
@@ -288,7 +288,7 @@ export default function ChatPage() {
                 width={50}
                 height={50}
                 src={
-                  friend?.profilePic || "/profile/default_profile_pic.png"
+                  friend?.profilePic || "/profile/default_profile_pic.jpg"
                 }
                 alt="profile"
                 className="w-12 h-12 rounded-full border border-white/10"
@@ -339,7 +339,7 @@ export default function ChatPage() {
                   selectedChat.users.find(
                     (u) => u.user._id !== userId
                   )?.user.profilePicture ||
-                  "/profile/default_profile_pic.png"
+                  "/profile/default_profile_pic.jpg"
                 }
                 alt="profile"
                 className="w-10 h-10 rounded-full border border-white/10"
