@@ -9,7 +9,6 @@ import confetti from "canvas-confetti";
 // import axios from "axios";
 import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGettingDailyTasks, errorGettingGeneralTasks, updateIdOfNewlyAddedTask } from "@/src/lib/features/tasks/TaskSlice";
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
-import Link from "next/link";
 import axios from "axios";
 import { addPerformance, errorGettingPerformance, updateStreak, updateWeeklyProgress } from "@/src/lib/features/stats/statSlice";
 // import { editPerformance } from "@/src/lib/features/stats/statSlice";
@@ -275,15 +274,6 @@ export default function TasksPage() {
     }
   }
 
-  const deleteAccount = async() => {
-    try {
-      const response = await axios.delete('http://localhost:5000/api/user/delete', {withCredentials: true})
-      console.log(response)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   // --------- main page -----------------
 
   function ImportanceBadge({ importance }: { importance: taskType["importance"] }) {
@@ -299,8 +289,7 @@ export default function TasksPage() {
         <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-blue-300">
           Your Tasks
         </h1>
-        <button onClick={deleteAccount}>Delete acccount</button>
-
+  
         <div className="grid w-full md:grid-cols-2 gap-10"> {/* Here we can make a seperate component as most of the thing will be same for both daily and general but I thought why to pass extra args like today's task and different classes and that just for 2 components - hence here we have both the component code here itself */}
           {/* ---------------- TODAY TASKS ---------------- */}
           <div
@@ -502,9 +491,9 @@ export default function TasksPage() {
           </div>
         </div>
 
-        <Link href='/user/allTasks' className="text-center text-emerald-400 mt-10 underline underline-offset-4 hover:text-emerald-300 cursor-pointer w-full transition">
+        <button onClick={() => alert('Coming Soon...')} className="text-center text-emerald-400 mt-10 underline underline-offset-4 hover:text-emerald-300 cursor-pointer w-full transition">
           See all your tasks
-        </Link>
+        </button>
       </div>
       <Modal open={isModalOpen} onClose={closeModal} initial={modalInitial} onSubmit={handleModalSubmit}/>
     </div>
