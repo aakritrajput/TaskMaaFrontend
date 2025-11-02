@@ -2,20 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, useMemo } from "react";
-import { Menu, X, Search } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Menu, X} from "lucide-react";
+import { usePathname } from "next/navigation";
 import { /*useDispatch,*/ useSelector } from "react-redux";
 import type { RootState } from "../../lib/store";
 import { FallbackNavbar } from "./NavbarFallbackUI";
-import axios from "axios";
 //import { logout } from "../lib/features/auth/AuthSlice";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const authStatus = useSelector((state: RootState) => state.auth.authStatus)
+  const profilePic = useSelector((state: RootState) => state.auth.user?.profilePicture)
   const pathname = usePathname();
-  const router = useRouter();
 //  const dispatch = useDispatch();
 
   // helper to check active route and return classes
@@ -28,96 +27,6 @@ export default function Navbar() {
 
 // ------  This part is for the navbar of authenticated users -------
 
-  const tasks = useMemo(() => [  // this will be some latest task data that we will fetch in starting not much just the latest ones..
-    {
-      id: '1',
-      title: 'Read PCA',
-      description: 'Read pca and apply it in the project working on'
-    },
-    {
-      id: '2',
-      title: 'Practice Guitar',
-      description: 'Need to practise guitar for college performance'
-    },
-    {
-      id: '3',
-      title: 'Buy Vegetables',
-      description: 'buy potatoes and tomatoes for dinner today!!'
-    },
-  ], []);
-
-  const searchResult = [  // and these will be the tasks which we will get (if any) from backend in response to search query..
-    {
-      id: '4',
-      title: 'Dummy task',
-      description: 'Discription of the dummy task'
-    },
-    {
-      id: '5',
-      title: 'Dummy task',
-      description: 'Discription of the dummy task'
-    },
-    {
-      id: '6',
-      title: 'Dummy task',
-      description: 'Discription of the dummy task'
-    },
-  ]
-
-  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [filteredTasks, setFilteredTasks] = useState<typeof tasks>([]);
-  const [searchedTasks, setSearchedTasks] = useState<typeof tasks>([])
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  // Update filtered tasks as user types
-  useEffect(() => {
-    if (searchValue) {
-      const filtered = tasks.filter((task) =>
-        task.title.toLowerCase().includes(searchValue.toLowerCase())
-      );
-      setFilteredTasks(filtered);
-    } else {
-      setFilteredTasks([]);
-    }
-  }, [searchValue, tasks]);
-
-  // Close overlay when clicking outside 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (overlayRef.current && !overlayRef.current.contains(e.target as Node)) {
-        setIsOverlayOpen(false);
-        setSearchedTasks([]);
-        setSearchValue("");
-      }
-    };
-    if (isOverlayOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOverlayOpen]);
-
-  const handleSuggestionClick = (id:string) => {
-    router.push(`/user/tasks/${id}`)
-    // Optionally, fetch all matching tasks to show as cards
-    // setFilteredTasks(tasks.filter(task => task.title.includes(title)));
-  };
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    console.log('Task to search: ', searchValue)
-    setSearchedTasks(searchResult) // for now we are using same data for every search
-    setSearchValue('')
-  }
-
-  const logoutHandler = async() => {
-    try {
-      await axios.get('http://localhost:5000/api/user/logout', {withCredentials: true})
-    } catch (error) {
-      console.log('error: ', error)
-    }
-  }
- 
 
   return (
     <div>
@@ -247,84 +156,12 @@ export default function Navbar() {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
-
-          {/* Later we will remove logout from here !! */}
-          <button
-            className=" text-white text-xl"
-            onClick={() => logoutHandler()}
-          >
-            Logout
-          </button>
-
-          {/* Search Icon / Input Trigger */}
-          <button
-            className="md:hidden text-white text-xl"
-            onClick={() => setIsOverlayOpen(true)}
-          >
-            <Search className="w-6 h-6"/>
-          </button>
-
-          {/* Desktop Input */}
-          <div className="hidden md:block">
-            <input
-              type="text"
-              placeholder="Search your Tasks..."
-              onFocus={() => setIsOverlayOpen(true)}
-              className="rounded-2xl px-3 py-2 border border-white focus:outline-[#4cdcae] bg-gradient-to-r from-[#47ebe690] to-[#00000072] backdrop-blur-2xl placeholder:text-gray-200 text-white max-w-[300px]"
-            />
-          </div>
-
           {/* Profile Pic */}
-          <Link href="/user/profile" className="w-[50px] h-[40px] relative">
-            <Image fill src="/profile/default_profile_pic.png" alt="profile" className="rounded-full object-cover" />
+          <Link href="/user/profile" className="w-[40px] border-2 border-[#008075] rounded-full h-[40px] overflow-hidden relative">
+            <Image fill src={profilePic ?? '/profile/default_profile_pic.jpg'} alt="profile" className="object-cover" />
           </Link>
         </div>
       </div>
-
-      {/* Fullscreen Overlay */}
-      {isOverlayOpen && (
-        <div className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.5)] backdrop-blur-lg flex flex-col items-center p-4">
-          <div ref={overlayRef} className="w-full max-w-2xl">
-            <form onSubmit={handleSearch}>
-              <input
-              type="text"
-              placeholder="Search Tasks..."
-              name="search"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="w-full rounded-3xl px-4 py-3 bg-[rgba(255,255,255,0.1)] backdrop-blur-md text-white placeholder:text-gray-300 text-lg outline-none focus:ring-2 focus:ring-[#4cdcae]"
-              autoFocus
-            />
-            </form>
-
-            {/* Suggestions */}
-            {filteredTasks.length > 0 ? (
-              <ul className="mt-4 max-h-80 overflow-auto bg-[rgba(255,255,255,0.1)] rounded-lg backdrop-blur-md shadow-lg">
-                {filteredTasks.map((task, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-3 hover:bg-[rgba(76,220,174,0.3)] cursor-pointer text-white"
-                    onClick={() => handleSuggestionClick(task.id)}
-                  >
-                    {task.title}
-                  </li>
-                ))}
-              </ul>
-            ) : (searchValue ? <p className="text-gray-200 text-center my-3 w-full">No matching tasks...</p> : '')}
-
-            {searchedTasks.length > 0 && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                {searchedTasks.map((task, idx) => (
-                  <Link href={`/user/tasks/${task.id}`} key={idx} className="bg-[rgba(0,0,0,0.3)] p-4 rounded-xl text-white">
-                    <h2 className="font-semibold">{task.title}</h2>
-                    <p className="text-sm mt-1">{task.description}</p>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </>
     }
     </div>
