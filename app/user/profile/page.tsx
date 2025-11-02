@@ -44,6 +44,9 @@ export default function ProfilePage() {
   const [error, setError] = useState<string>("");
   const [requestsError, setRequestsError] = useState<string>("");
   const [actionError, setActionError] = useState<string>("");
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
 
   const [editName, setEditName] = useState("");
   const [editProfileType, setEditProfileType] = useState("private");
@@ -121,33 +124,31 @@ export default function ProfilePage() {
     e?.preventDefault();
     if (!userId) return;
     try {
-        setEditSubmitting(true); // start form submit loading
-    
-        const form = new FormData();
-        form.append("name", editName);
-        form.append("profileType", editProfileType);
-        form.append("about", editAbout);
-        if (editProfilePicFile) form.append("profilePicture", editProfilePicFile);
-    
-        const res = await axios.put(
-          `http://localhost:5000/api/user/editProfile`,
-          form,
-          { withCredentials: true }
-        );
-    
-        setProfile(res.data.data);
-        setEditing(false);
-        setEditProfilePicFile(null);
-        if (previewUrl && previewUrl.startsWith("blob:"))
-          URL.revokeObjectURL(previewUrl);
+      setEditSubmitting(true);
+      const form = new FormData();
+      form.append("name", editName);
+      form.append("profileType", editProfileType);
+      form.append("about", editAbout);
+      if (editProfilePicFile) form.append("profilePicture", editProfilePicFile);
+
+      const res = await axios.put(
+        `http://localhost:5000/api/user/editProfile`,
+        form,
+        { withCredentials: true }
+      );
+
+      setProfile(res.data.data);
+      setEditing(false);
+      setEditProfilePicFile(null);
+      if (previewUrl && previewUrl.startsWith("blob:"))
+        URL.revokeObjectURL(previewUrl);
     } catch (err) {
       console.error(err);
       alert("Could not update profile.");
     } finally {
-      setEditSubmitting(false); // stop submit loading
+      setEditSubmitting(false);
     }
   }
-
 
   const handleFriendAction = async ({
     profileId,
@@ -176,6 +177,69 @@ export default function ProfilePage() {
     }
   };
 
+  const logoutHandler = async () => {
+    setLoggingOut(true);
+    try {
+      await axios.get("http://localhost:5000/api/user/logout", { withCredentials: true });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        alert(`${error.response.data.message}`);
+      } else {
+        alert("There was some Error logging out from your account !!");
+      }
+      window.location.reload();
+    } finally {
+      setLoggingOut(false);
+      window.location.reload();
+    }
+  };
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await axios.delete("http://localhost:5000/api/user/delete", { withCredentials: true });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+        alert(`${error.response.data.message}`);
+      } else {
+        alert("There was some Error deleting your account !!");
+      }
+    } finally {
+      setDeleting(false);
+      window.location.reload();
+    }
+  };
+
+  // === Confirm Delete Modal ===
+  const ConfirmModal = () => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-[#04232d] text-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
+        <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
+        <p className="text-sm mb-6 text-white/80">
+          Are you sure you want to permanently delete your account? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 cursor-pointer"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            disabled={deleting}
+            onClick={() => {
+              setShowConfirmModal(false);
+              deleteAccount();
+            }}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-red-500 cursor-pointer hover:opacity-90 disabled:opacity-60"
+          >
+            {deleting ? "Processing..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (!userId) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800 text-white">
@@ -185,7 +249,6 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    // Skeleton loader for entire profile
     return (
       <main className="min-h-screen bg-gradient-to-b from-[#02111a] via-[#012a2b] to-[#052b3a] text-white p-6">
         <div className="max-w-6xl mx-auto animate-pulse space-y-6">
@@ -203,7 +266,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen p-6 bg-gradient-to-b from-[#02111a] via-[#012a2b] to-[#052b3a] text-white">
+    <main className="min-h-screen p-6 bg-gradient-to-b from-[#02111a] via-[#012a2b] to-[#052b3a] text-white relative">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
@@ -213,14 +276,13 @@ export default function ProfilePage() {
         {error && <p className="text-red-400 mb-4">{error}</p>}
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-y-3 md:gap-y-2 md:gap-6">
-          {/* Left column - profile details */}
           <div className="col-span-1 p-6 rounded-2xl bg-white/5 backdrop-blur-md shadow-lg">
             <div className="flex flex-col items-center text-center">
               <div className="w-36 h-36 rounded-full overflow-hidden mb-4 border border-white/10 shadow-inner">
                 <Image
                   width={100}
                   height={100}
-                  src={profile?.profilePicture || "/profile/default_profile_pic.png"}
+                  src={profile?.profilePicture || "/profile/default_profile_pic.jpg"}
                   alt="profile"
                   className="w-full h-full object-cover"
                 />
@@ -228,9 +290,7 @@ export default function ProfilePage() {
 
               <h2 className="text-xl font-semibold">{profile?.name || "-"}</h2>
               <p className="text-sm text-white/70">@{profile?.username || "-"}</p>
-              <p className="mt-3 text-sm text-white/80">
-                {profile?.profileType || "private"}
-              </p>
+              <p className="mt-3 text-sm text-white/80">{profile?.profileType || "private"}</p>
 
               <div className="mt-4 w-full">
                 <button
@@ -246,10 +306,7 @@ export default function ProfilePage() {
                 <div className="flex gap-3 flex-wrap">
                   {profile?.badges && profile.badges.length > 0 ? (
                     profile.badges.map((b, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col items-center text-xs"
-                      >
+                      <div key={idx} className="flex flex-col items-center text-xs">
                         <Image
                           width={40}
                           height={40}
@@ -263,6 +320,23 @@ export default function ProfilePage() {
                     <p className="text-sm text-white/60">No badges yet.</p>
                   )}
                 </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-around gap-3 p-2">
+                <button
+                  disabled={loggingOut}
+                  className="text-black px-2 py-1 cursor-pointer bg-gradient-to-r from-pink-400 to-cyan-400 hover:bg-gradient-to-r hover:from-gray-500 hover:to-red-400 rounded-xl"
+                  onClick={logoutHandler}
+                >
+                  {loggingOut ? "Processing..." : "Logout"}
+                </button>
+                <button
+                  disabled={deleting}
+                  className="text-black leading-tight text-center px-2 py-1 cursor-pointer bg-gradient-to-r from-yellow-400 to-cyan-400 hover:bg-gradient-to-r hover:from-gray-500 hover:to-red-400 rounded-xl"
+                  onClick={() => setShowConfirmModal(true)}
+                >
+                  {deleting ? "Processing..." : "Delete Account"}
+                </button>
               </div>
             </div>
           </div>
@@ -318,7 +392,7 @@ export default function ProfilePage() {
                           width={100}
                           height={100}
                           src={
-                            previewUrl || "/profile/default_profile_pic.png"
+                            previewUrl || "/profile/default_profile_pic.jpg"
                           }
                           alt="preview"
                           className="object-cover w-full h-full"
@@ -412,7 +486,7 @@ export default function ProfilePage() {
                             height={40}
                             src={
                               req.profilePicture ??
-                              "/profile/default_profile_pic.png"
+                              "/profile/default_profile_pic.jpg"
                             }
                             alt="Profile Pic"
                           />
@@ -458,6 +532,8 @@ export default function ProfilePage() {
           </div>
         </section>
       </div>
+
+      {showConfirmModal && <ConfirmModal />}
     </main>
   );
 }
