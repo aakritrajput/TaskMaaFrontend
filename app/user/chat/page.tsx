@@ -41,11 +41,14 @@ export default function ChatPage() {
 
   const friendsWhoHaveChatRoomWithUs = chats
     .filter((chat) => !chat.isGroupChat)
-    .map(
-      (chat) =>
-        chat.users.find((userDetail) => userDetail.user._id !== userId)?.user
-          ._id
-    );
+    .map((chat) => {
+      const foundUser = chat?.users?.find(
+        (userDetail) => userDetail?.user?._id !== userId
+      );
+      return foundUser?.user?._id || null;
+    })
+    .filter((id): id is string => id !== null);
+
 
   const currentChatMessages = chats.find(
     (chat) => chat._id === selectedChatId
