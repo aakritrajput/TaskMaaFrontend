@@ -9,6 +9,8 @@ import TwoStepGroupTaskOverlay, { GroupTaskFormData, Member } from '@/src/compon
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { addFriends, addGroupTasks, deleteGroupTask, editGroupTask, errorOnFriends, errorOnGrouptasks } from '@/src/lib/features/tasks/groupTaskSlice';
+import { useMaaHandler } from '@/src/components/taskMaa/useMaaHandler';
+import MaaPopup from '@/src/components/taskMaa/MaaPopup';
 
 export default function GroupTaskPage() {
   const { id } = useParams();
@@ -43,6 +45,9 @@ export default function GroupTaskPage() {
   const [membersError, setMembersError] = useState<string>('')
 
   const publicMembersStranger = groupTaskMembers.filter(member => !member.isFriend && member._id !== userId) // we don't want that the user itself like me is also added in public members list as i will not be included in my friends list 
+
+
+  const {message, triggerMaaResponse} = useMaaHandler();
 
   const hasFetched = useRef({
     friends: false,
@@ -107,6 +112,7 @@ export default function GroupTaskPage() {
     try {
       dispatch(editGroupTask({ ...prevTask, winners: newWinners } as groupTaskType));
       await axios.get(`http://localhost:5000/api/groupTask/markComplete/${id}`, { withCredentials: true });
+      triggerMaaResponse('group_task');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`);
@@ -424,6 +430,8 @@ export default function GroupTaskPage() {
           </>
         )}
       </section>
+
+      {message && <MaaPopup message={message}/>}
       
       {modalOpen && (
         <TwoStepGroupTaskOverlay
