@@ -45,8 +45,8 @@ export default function ProfilePage() {
   const [requestsError, setRequestsError] = useState<string>("");
   const [actionError, setActionError] = useState<string>("");
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState<boolean>(false);
-  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  // const [deleting, setDeleting] = useState<boolean>(false);
+  // const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
 
   const [editName, setEditName] = useState("");
   const [editProfileType, setEditProfileType] = useState("private");
@@ -194,51 +194,51 @@ export default function ProfilePage() {
     }
   };
 
-  const deleteAccount = async () => {
-    setDeleting(true);
-    try {
-      await axios.delete("http://localhost:5000/api/user/delete", { withCredentials: true });
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
-        alert(`${error.response.data.message}`);
-      } else {
-        alert("There was some Error deleting your account !!");
-      }
-    } finally {
-      setDeleting(false);
-      window.location.reload();
-    }
-  };
+  // const deleteAccount = async () => {
+  //   setDeleting(true);
+  //   try {
+  //     await axios.delete("http://localhost:5000/api/user/delete", { withCredentials: true });
+  //   } catch (error) {
+  //     if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
+  //       alert(`${error.response.data.message}`);
+  //     } else {
+  //       alert("There was some Error deleting your account !!");
+  //     }
+  //   } finally {
+  //     setDeleting(false);
+  //     window.location.reload();
+  //   }
+  // };
 
-  // === Confirm Delete Modal ===
-  const ConfirmModal = () => (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-[#04232d] text-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
-        <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
-        <p className="text-sm mb-6 text-white/80">
-          Are you sure you want to permanently delete your account? This action cannot be undone.
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 cursor-pointer"
-            onClick={() => setShowConfirmModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-            disabled={deleting}
-            onClick={() => {
-              setShowConfirmModal(false);
-              deleteAccount();
-            }}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-red-500 cursor-pointer hover:opacity-90 disabled:opacity-60"
-          >
-            {deleting ? "Processing..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  // // === Confirm Delete Modal ===
+  // const ConfirmModal = () => (
+  //   <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+  //     <div className="bg-[#04232d] text-white p-6 rounded-2xl shadow-xl max-w-sm w-full">
+  //       <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
+  //       <p className="text-sm mb-6 text-white/80">
+  //         Are you sure you want to permanently delete your account? This action cannot be undone.
+  //       </p>
+  //       <div className="flex justify-end gap-3">
+  //         <button
+  //           className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 cursor-pointer"
+  //           onClick={() => setShowConfirmModal(false)}
+  //         >
+  //           Cancel
+  //         </button>
+  //         <button
+  //           disabled={deleting}
+  //           onClick={() => {
+  //             setShowConfirmModal(false);
+  //             deleteAccount();
+  //           }}
+  //           className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-red-500 cursor-pointer hover:opacity-90 disabled:opacity-60"
+  //         >
+  //           {deleting ? "Processing..." : "Delete"}
+  //         </button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 
   if (!userId) {
     return (
@@ -330,13 +330,13 @@ export default function ProfilePage() {
                 >
                   {loggingOut ? "Processing..." : "Logout"}
                 </button>
-                <button
+                {/* <button
                   disabled={deleting}
                   className="text-black leading-tight text-center px-2 py-1 cursor-pointer bg-gradient-to-r from-yellow-400 to-cyan-400 hover:bg-gradient-to-r hover:from-gray-500 hover:to-red-400 rounded-xl"
                   onClick={() => setShowConfirmModal(true)}
                 >
                   {deleting ? "Processing..." : "Delete Account"}
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -533,7 +533,7 @@ export default function ProfilePage() {
         </section>
       </div>
 
-      {showConfirmModal && <ConfirmModal />}
+      {/* {showConfirmModal && <ConfirmModal />} */}
     </main>
   );
 }
