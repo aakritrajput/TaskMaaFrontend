@@ -11,6 +11,8 @@ import { addDailyTasks, addGeneralTasks, addTask, deleteTask, editTask, errorGet
 import Modal from "@/src/components/user/TaskCreateOrEditModal";
 import axios from "axios";
 import { addPerformance, errorGettingPerformance, updateStreak, updateWeeklyProgress } from "@/src/lib/features/stats/statSlice";
+import { useMaaHandler } from "@/src/components/taskMaa/useMaaHandler";
+import MaaPopup from "@/src/components/taskMaa/MaaPopup";
 // import { editPerformance } from "@/src/lib/features/stats/statSlice";
 
 export type taskType = {
@@ -53,6 +55,10 @@ export default function TasksPage() {
     setModalInitial(initial);
     setIsModalOpen(true);
   }
+
+  // Maa responses
+
+  const {triggerMaaResponse, message} = useMaaHandler();
 
   function openEdit(task: taskType) {
     setModalInitial(task);
@@ -222,7 +228,12 @@ export default function TasksPage() {
         if(task.type == 'daily') playSound('/sounds/dailyTaskCompleteAudio.wav') ;
         else if(task.type == 'general') playSound('/sounds/generalTaskCompleteAudio.wav');
         showConfetti();
-      }else playSound('/sounds/incompleteTaskSound.wav')
+
+        triggerMaaResponse("task_completed");
+      }else {
+        playSound('/sounds/incompleteTaskSound.wav');
+        triggerMaaResponse('missed_tasks');
+      }
 
       if(performance && totalCompletedTasks == 0) { // if a task pass this check that means the user does not have till now any completed task for today which means here we can call backend to update streak
         dispatch(updateStreak('continue'));
@@ -495,6 +506,7 @@ export default function TasksPage() {
           See all your tasks
         </button>
       </div>
+      {message && <MaaPopup message={message}/>}
       <Modal open={isModalOpen} onClose={closeModal} initial={modalInitial} onSubmit={handleModalSubmit}/>
     </div>
   );
