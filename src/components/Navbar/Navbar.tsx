@@ -158,7 +158,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {/* Profile Pic */}
           <Link href="/user/profile" className="w-[40px] border-2 border-[#008075] rounded-full h-[40px] overflow-hidden relative">
-            <Image fill src={profilePic ?? '/profile/default_profile_pic.jpg'} alt="profile" className="object-cover" />
+            <Image fill src={profilePic ?  profilePic : '/profile/default_profile_pic.jpg'} alt="profile" className="object-cover" />
           </Link>
         </div>
       </div>
