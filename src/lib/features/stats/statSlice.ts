@@ -8,6 +8,7 @@ export type PerformanceType = { // same type as in maiin dashboard
   overallScore: number;
   weeklyProgress: number[];
   lastStreakOn: string;
+  lastOnline: string;
   badges: string[];
 };
 
