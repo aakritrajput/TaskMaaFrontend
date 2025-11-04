@@ -1,5 +1,7 @@
 "use client";
 
+import MaaPopup from "@/src/components/taskMaa/MaaPopup";
+import { useMaaHandler } from "@/src/components/taskMaa/useMaaHandler";
 import { addLeaderBoard, addPerformance, errorGettingLeaderBoard, errorGettingPerformance } from "@/src/lib/features/stats/statSlice";
 import { addDailyTasks, addGeneralTasks, errorGettingDailyTasks, errorGettingGeneralTasks } from "@/src/lib/features/tasks/TaskSlice";
 import { RootState } from "@/src/lib/store";
@@ -130,6 +132,8 @@ export default function TaskMaaDashboard() {
 
   const dispatch = useDispatch();
 
+  const {triggerMaaResponse, message} = useMaaHandler();
+
   // status pie
 
   const [total, completed] = getTotalAndCompletedTasks([...dailyTasks, ...generalTasks])
@@ -182,6 +186,25 @@ export default function TaskMaaDashboard() {
           hasFetched.current.performance = true;
           const response = await axios.get('http://localhost:5000/api/dashboard/getPerformanceStats', {withCredentials: true});
           dispatch(addPerformance(response.data.data));
+
+          if(response.data.data.lastOnline){
+            const lastOnline = new Date(response.data.data.lastOnline);
+            const today = new Date();
+            
+            // Compare only year, month, and date
+            const isLastOnlineToday =
+              lastOnline.getDate() === today.getDate() &&
+              lastOnline.getMonth() === today.getMonth() &&
+              lastOnline.getFullYear() === today.getFullYear();
+
+            if(!isLastOnlineToday){
+              triggerMaaResponse("daily_start")
+            }
+          }
+
+          if(response.data.data.currentStreak > 5){
+            triggerMaaResponse("streak");
+          }
         } catch (error) {
           dispatch(errorGettingPerformance())
           console.log('Error getting todays tasks: ', error);
@@ -202,7 +225,7 @@ export default function TaskMaaDashboard() {
       }
       getLeaderBoard()
     }
-  }, [dailyTasksStatus, dispatch, generalTaskStatus, leaderboardStatus, performanceStatus])
+  }, [dailyTasksStatus, dispatch, generalTaskStatus, triggerMaaResponse, leaderboardStatus, performanceStatus])
 
   return (
     <main className="min-h-screen p-6 bg-gradient-to-b from-[#06161a] via-[#082a2d] to-[#06161a] text-white">
@@ -451,6 +474,7 @@ export default function TaskMaaDashboard() {
         </div>
         <footer className="mt-6 text-center text-sm text-white/60">Keep going — Maa is proud of you 💚</footer>
       </div>
+      {message && <MaaPopup message={message}/>}
     </main>
   );
 }
