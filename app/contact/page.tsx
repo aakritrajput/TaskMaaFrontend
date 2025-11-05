@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha";
 
 type FormData = {
   name: string;
@@ -10,7 +10,7 @@ type FormData = {
   message: string;
 };
 
-const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string;
+// const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY as string;
 
 export default function ContactPage() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
@@ -28,8 +28,10 @@ export default function ContactPage() {
 
     // TEMPORARY: No backend yet, so here i am simulate sending
     setTimeout(() => {
-      console.log("Form Data:", { ...data, captchaToken });
+      // console.log("Form Data:", { ...data, captchaToken });
+      console.log("data: ", data)
       setStatus("Message captured! (Will be sent when backend is ready)");
+      alert("The contact feature will soon be implemented !!")
       reset();
       setCaptchaToken(null);
       setLoading(false);
@@ -70,10 +72,10 @@ export default function ContactPage() {
 
 
           {/* Google reCAPTCHA (currently not verified server-side) */}
-          <ReCAPTCHA
+          {/* <ReCAPTCHA
             sitekey={siteKey}
             onChange={(token) => setCaptchaToken(token)}
-          />
+          /> */}
 
           {/* Submit Button */}
           <button
