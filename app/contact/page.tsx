@@ -15,14 +15,14 @@ type FormData = {
 export default function ContactPage() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
+  // const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // const [status, setStatus] = useState<string | null>(null);
 
   const onSubmit = async (data: FormData) => {
-    if (!captchaToken) {
-      setStatus("Please verify you are not a robot.");
-      return;
-    }
+    // if (!captchaToken) {
+    //   setStatus("Please verify you are not a robot.");
+    //   return;
+    // }
 
     setLoading(true);
 
@@ -30,10 +30,10 @@ export default function ContactPage() {
     setTimeout(() => {
       // console.log("Form Data:", { ...data, captchaToken });
       console.log("data: ", data)
-      setStatus("Message captured! (Will be sent when backend is ready)");
+      // setStatus("Message captured! (Will be sent when backend is ready)");
       alert("The contact feature will soon be implemented !!")
       reset();
-      setCaptchaToken(null);
+      // setCaptchaToken(null);
       setLoading(false);
     }, 1200);
   };
@@ -81,7 +81,7 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full p-3 bg-teal-500 hover:bg-teal-600 rounded-lg font-bold transition"
+            className="w-full p-3 bg-teal-500 hover:bg-teal-600 cursor-pointer rounded-lg font-bold transition"
           >
             {loading ? "Sending..." : "Send Message"}
           </button>
