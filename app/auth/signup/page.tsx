@@ -8,7 +8,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 
 interface SignupFormValues {
   username: string;
@@ -22,8 +21,7 @@ export default function SignupPage() {
   const passwordValue = watch("password"); // To compare with confirm password
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
-
-  const router = useRouter()
+  const [successMessage, setSuccessMessage] = useState<string>('')
 
   const onSubmit: SubmitHandler<SignupFormValues> = async(data) => {
     setLoading(true)
@@ -31,8 +29,8 @@ export default function SignupPage() {
       const response = await axios.post('http://localhost:5000/api/user/register', data)
       if(response.data.data == 'OK'){ // it is obvious but still for double check 😅
         reset();
-        router.push('/auth/login')
       }
+      setSuccessMessage(response.data.message)
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
@@ -94,7 +92,7 @@ export default function SignupPage() {
           {errors.confirmPassword && <p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>}
 
           {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
-
+          {successMessage && <p className="text-green-400 my-3 text-sm">{successMessage}</p>}
           <Button loading={loading} type="submit">Sign Up</Button>
         </form>
 
