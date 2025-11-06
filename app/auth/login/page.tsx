@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const user = useSelector((state: RootState) => state.auth.user)
+  const [verifyLink, setVerifyLink] = useState<boolean>(false)
 
    useEffect(() => {
     if (user) {
@@ -33,8 +34,6 @@ export default function LoginPage() {
   }, [user, router]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
-    console.log("Login Data:", data);
-    
     try {
       setLoading(true)
       const response = await axios.post('http://localhost:5000/api/user/login', data, {withCredentials: true})
@@ -43,6 +42,9 @@ export default function LoginPage() {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
+        if(error.status === 402){
+          setVerifyLink(true);
+        }
       } else {
         setError("An unexpected error occurred");
       }
@@ -81,17 +83,18 @@ export default function LoginPage() {
           />
           {errors.password && <p className="text-red-400 text-sm">{errors.password.message}</p>}
 
-          {error && <p className="text-red-400 my-3 text-sm">{error}</p>}
-
+          {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
+          {verifyLink && <p className="text-green-400  text-sm"><Link href={'/auth/resendVerificationLink'}  className="text-[#06ad9c]">Resend verification email</Link></p>}
           <Button loading={loading} type="submit">Login</Button>
         </form>
+        
         <div className="mt-4 flex justify-between text-sm text-gray-300">
           <Link href="/auth/signup" className="text-teal-400 hover:underline cursor-pointer">
             Don&apos;t have an account?
           </Link>
-          <Link href="/auth/forgot-password" className="text-teal-400 hover:underline cursor-pointer">
+          {/* <Link href="/auth/forgot-password" className="text-teal-400 hover:underline cursor-pointer">
             Forgot Password?
-          </Link>
+          </Link> */}
         </div>
       </div>
 
