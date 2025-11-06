@@ -24,7 +24,7 @@ export const useSocket = (userId: string) => {
 
     async function getInitialChats(){
       try {
-        const response = await axios.get('http://localhost:5000/api/chat/getChatInterface', {withCredentials: true})
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/getChatInterface`, {withCredentials: true})
         dispatch(addInitialChats(response.data.data))
       } catch (error) {
         if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
@@ -37,7 +37,7 @@ export const useSocket = (userId: string) => {
 
     getInitialChats();
 
-    const socket = io('http://localhost:5000', {
+    const socket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
       withCredentials: true,
       query: { userId },
     });

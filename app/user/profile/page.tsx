@@ -63,7 +63,7 @@ export default function ProfilePage() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:5000/api/user/profile/${userId}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile/${userId}`,
           { withCredentials: true }
         );
         setProfile(res.data.data);
@@ -81,7 +81,7 @@ export default function ProfilePage() {
 
     async function fetchRequests() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/user/requestsIRecieved`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/requestsIRecieved`, {
           withCredentials: true,
         });
         setRequests(res.data.data);
@@ -132,7 +132,7 @@ export default function ProfilePage() {
       if (editProfilePicFile) form.append("profilePicture", editProfilePicFile);
 
       const res = await axios.put(
-        `http://localhost:5000/api/user/editProfile`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/editProfile`,
         form,
         { withCredentials: true }
       );
@@ -161,7 +161,7 @@ export default function ProfilePage() {
     try {
       const data = { response: action };
       await axios.post(
-        `http://localhost:5000/api/user/responseToFriendRequest/${profileId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/responseToFriendRequest/${profileId}`,
         data,
         { withCredentials: true }
       );
@@ -180,7 +180,7 @@ export default function ProfilePage() {
   const logoutHandler = async () => {
     setLoggingOut(true);
     try {
-      await axios.get("http://localhost:5000/api/user/logout", { withCredentials: true });
+      await axios.get( `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`, { withCredentials: true });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         alert(`${error.response.data.message}`);
@@ -197,7 +197,7 @@ export default function ProfilePage() {
   // const deleteAccount = async () => {
   //   setDeleting(true);
   //   try {
-  //     await axios.delete("http://localhost:5000/api/user/delete", { withCredentials: true });
+  //     await axios.delete("${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/delete", { withCredentials: true });
   //   } catch (error) {
   //     if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
   //       alert(`${error.response.data.message}`);

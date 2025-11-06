@@ -52,7 +52,7 @@ export default function GroupTasksPage() {
         hasFetched.current.friends = true;
         async function getFriends(){
         try {
-          const response = await axios.get('http://localhost:5000/api/user/getFriends', {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/getFriends`, {withCredentials: true})
           dispatch(addFriends(response.data.data))
         } catch (error) {
           console.log('error: ', error)
@@ -65,7 +65,7 @@ export default function GroupTasksPage() {
         hasFetched.current.groupTasks = true;
         async function getGroupTasks(){
         try {
-          const response = await axios.get('http://localhost:5000/api/groupTask/myGroupTasks', {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/myGroupTasks`, {withCredentials: true})
           dispatch(addGroupTasks(response.data.data))
         } catch (error) {
           console.log('error: ', error)
@@ -78,7 +78,7 @@ export default function GroupTasksPage() {
         hasFetched.current.publicTasks = true;
         async function getPublicTasks(){
         try {
-          const response = await axios.get('http://localhost:5000/api/groupTask/publicGroupTasks', {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/publicGroupTasks`, {withCredentials: true})
           dispatch(addPublicTasks(response.data.data))
         } catch (error) {
           console.log('error: ', error)
@@ -90,13 +90,11 @@ export default function GroupTasksPage() {
     }, [dataFromStore.friendsStatus, dispatch, dataFromStore.groupTaskStatus, dataFromStore.publicTaskStatus])
 
     const participateHandler = async(id: string) => {
-      console.log('participate handler runs !!')
       const task = publicGroupTasks.find(task => task._id === id);
       if (!task) return ;
       setRequesting(true)
-      console.log('it continues..')
       try {
-        await axios.get(`http://localhost:5000/api/groupTask/participateInPublicGroupTask/${id}`, {withCredentials: true})
+        await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/participateInPublicGroupTask/${id}`, {withCredentials: true})
         dispatch(addNewGroupTask({...task}))
         dispatch(deletePublicGroupTask(task._id))
         setResponseFromRequest('Congratulations.. You are successfully admitted !!')
@@ -117,7 +115,7 @@ export default function GroupTasksPage() {
         const updateData: groupTaskType = {_id: tempId, ...data, creatorId: user ? user._id : '', status: 'ongoing', winners: []};
         dispatch(addNewGroupTask(updateData))
         // now if we see we are also sending _id to backend but that's ok as in backend the data is filtering out and in db we are only storing rest of the fields and id is newly generated automatically !!
-        const response = await axios.post('http://localhost:5000/api/groupTask/createGroupTask', data, {withCredentials: true})
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/createGroupTask`, data, {withCredentials: true})
         dispatch(updateIdOfNewlyAddedGroupTask({ oldId: tempId ,newData: response.data.data})) // it will update the old id with the new one !!
       } catch (error) {
         if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){

@@ -48,7 +48,7 @@ const StrangerProfilePage = () => {
            try {
              setLoading(true);
              const res = await axios.get<{ data: UserProfile }>(
-               `http://localhost:5000/api/user/profile/${profileId}`,
+               `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile/${profileId}`,
                { withCredentials: true }
              );
              setProfile(res.data.data);
@@ -71,7 +71,7 @@ const StrangerProfilePage = () => {
     setActionLoading(true);
     try {
         if(action === 'send'){
-            await axios.post(`http://localhost:5000/api/user/sendFriendRequest/${profileId}`, {}, { withCredentials: true });
+            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/sendFriendRequest/${profileId}`, {}, { withCredentials: true });
             if(profile){
                 profile.sentOrRecieved = "sent";
                 profile.isRequested = true;
@@ -79,7 +79,7 @@ const StrangerProfilePage = () => {
         }
         else{
             const data = {response: action}
-            await axios.post(`http://localhost:5000/api/user/responseToFriendRequest/${profileId}`, data, { withCredentials: true })
+            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/responseToFriendRequest/${profileId}`, data, { withCredentials: true })
             if(action === 'accepted' && profile){
                 profile.isFriend = true;
                 profile.isRequested = false;

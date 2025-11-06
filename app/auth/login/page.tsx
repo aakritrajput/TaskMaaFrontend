@@ -36,7 +36,7 @@ export default function LoginPage() {
   const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
     try {
       setLoading(true)
-      const response = await axios.post('http://localhost:5000/api/user/login', data, {withCredentials: true})
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`, data, {withCredentials: true})
       console.log('response: ', response)
       dispatch(login(response.data.data))
     } catch (error) {

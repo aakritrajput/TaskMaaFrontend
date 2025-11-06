@@ -22,7 +22,7 @@ function ResendVerificationLink() {
         setErrorMessage("");
         setSuccessMessage("");
         try {
-            const response = await axios.get(`http://localhost:5000/api/user/resendVerificationLink/${encodeURIComponent(data.email)}`)
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/resendVerificationLink/${encodeURIComponent(data.email)}`)
             setSuccessMessage(response.data.message)
         } catch (error) {
           console.log('error: ', error)

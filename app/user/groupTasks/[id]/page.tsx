@@ -60,7 +60,7 @@ export default function GroupTaskPage() {
         hasFetched.current.friends = true;
         async function getFriends(){
         try {
-          const response = await axios.get('http://localhost:5000/api/user/getFriends', {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/getFriends`, {withCredentials: true})
           dispatch(addFriends(response.data.data))
         } catch (error) {
           console.log('error: ', error)
@@ -73,7 +73,7 @@ export default function GroupTaskPage() {
         hasFetched.current.groupTask = true;
         async function getGroupTasks(){
         try {
-          const response = await axios.get('http://localhost:5000/api/groupTask/myGroupTasks', {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/myGroupTasks`, {withCredentials: true})
           dispatch(addGroupTasks(response.data.data))
         } catch (error) {
           console.log('error: ', error)
@@ -86,7 +86,7 @@ export default function GroupTaskPage() {
         hasFetched.current.members = true;
         async function getMembersOfTasks(){
         try {
-          const response = await axios.get(`http://localhost:5000/api/groupTask/groupTaskMembers/${id}`, {withCredentials: true})
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/groupTaskMembers/${id}`, {withCredentials: true})
           setMembers(response.data.data)
         } catch (error) {
           console.log('error: ', error)
@@ -111,7 +111,7 @@ export default function GroupTaskPage() {
     const newWinners = [...(prevTask.winners || []), userId];
     try {
       dispatch(editGroupTask({ ...prevTask, winners: newWinners } as groupTaskType));
-      await axios.get(`http://localhost:5000/api/groupTask/markComplete/${id}`, { withCredentials: true });
+      await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/markComplete/${id}`, { withCredentials: true });
       triggerMaaResponse('group_task');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
@@ -127,7 +127,7 @@ export default function GroupTaskPage() {
     if (!currentGroupTask) return;
     try {
       dispatch(editGroupTask({ ...currentGroupTask, status: 'completed' } as groupTaskType));
-      await axios.get(`http://localhost:5000/api/groupTask/toggleGroupTask/${id}`, { withCredentials: true });
+      await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/toggleGroupTask/${id}`, { withCredentials: true });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`);
@@ -156,7 +156,7 @@ export default function GroupTaskPage() {
         return [...retainedMembers, ...newMembers];
       });
 
-      await axios.post(`http://localhost:5000/api/groupTask/editGroupTask/${id}`, data, {withCredentials: true})
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/editGroupTask/${id}`, data, {withCredentials: true})
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
@@ -173,7 +173,7 @@ export default function GroupTaskPage() {
     try {
       dispatch(deleteGroupTask(id as groupTaskType['_id']))
       router.push('/user/groupTasks')
-      await axios.delete(`http://localhost:5000/api/groupTask/deleteGroupTask/${id}`, {withCredentials: true}) // the api call will still run !!
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/groupTask/deleteGroupTask/${id}`, {withCredentials: true}) // the api call will still run !!
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)

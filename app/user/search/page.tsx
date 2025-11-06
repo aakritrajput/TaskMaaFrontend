@@ -32,7 +32,7 @@ export default function UserSearch() {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:5000/api/user/search?username=${query}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/search?username=${query}`,
         { withCredentials: true }
       );
       setUser(response.data.data);

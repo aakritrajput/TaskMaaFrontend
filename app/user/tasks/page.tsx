@@ -76,7 +76,7 @@ export default function TasksPage() {
     if (task._id) {
       dispatch(editTask(task as taskType)) // we will imediatelly updates the UI
       try {
-        await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, task, {withCredentials: true}) // and BTS it will updates the task in backend and if any error 
+        await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/editTask/${task._id}`, task, {withCredentials: true}) // and BTS it will updates the task in backend and if any error 
       } catch (error) {
         if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
           alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)
@@ -93,7 +93,7 @@ export default function TasksPage() {
         // NOTE: we will keep newly created tasks at the end as i should see that task on top which was firstly created !!
   
         dispatch(addTask({...task, _id: tempId} as taskType))
-        const response = await axios.post("http://localhost:5000/api/tasks/createTask", task, {withCredentials: true})
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/createTask`, task, {withCredentials: true})
         dispatch(updateIdOfNewlyAddedTask({oldId: tempId, newId: response.data.data._id, type: task.type as taskType['type']}))
       } catch (error) {
         if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
@@ -123,7 +123,7 @@ export default function TasksPage() {
       async function getTodaysTasks(){
         try {
           hasFetched.current.daily = true;
-          const response = await axios.get('http://localhost:5000/api/tasks/todaysTask', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/todaysTask`, {withCredentials: true});
           dispatch(addDailyTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingDailyTasks())
@@ -136,7 +136,7 @@ export default function TasksPage() {
       async function getGeneralTasks(){
         try {
           hasFetched.current.general = true;
-          const response = await axios.get('http://localhost:5000/api/tasks/generalTasks', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/generalTasks`, {withCredentials: true});
           dispatch(addGeneralTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingGeneralTasks())
@@ -150,7 +150,7 @@ export default function TasksPage() {
       async function getPerformance(){
         try {
           hasFetched.current.performance = true;
-          const response = await axios.get('http://localhost:5000/api/dashboard/getPerformanceStats', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/getPerformanceStats`, {withCredentials: true});
           dispatch(addPerformance(response.data.data));
         } catch (error) {
           dispatch(errorGettingPerformance())
@@ -237,12 +237,12 @@ export default function TasksPage() {
 
       if(performance && totalCompletedTasks == 0) { // if a task pass this check that means the user does not have till now any completed task for today which means here we can call backend to update streak
         dispatch(updateStreak('continue'));
-        await axios.get('http://localhost:5000/api/dashboard/updateStreak/add', {withCredentials: true})
+        await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/updateStreak/add`, {withCredentials: true})
       }
       else if(task.status == 'inProgress' && totalCompletedTasks == 1){ // this will mean user is marking a completed task as uncompleted
         if(!task.completedOn && (defaultTask.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
           dispatch(updateStreak('remove'));
-          await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
+          await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/updateStreak/remove`, {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
         }
       }
 
@@ -254,7 +254,7 @@ export default function TasksPage() {
         dispatch(updateWeeklyProgress('uncompleted'))
         weeklyData[weeklyData.length - 1] = weeklyData[weeklyData.length - 1] - 1;
       }
-      await axios.patch(`http://localhost:5000/api/tasks/editTask/${task._id}`, {...task, weeklyProgress: weeklyData} , {withCredentials: true})
+      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/editTask/${task._id}`, {...task, weeklyProgress: weeklyData} , {withCredentials: true})
       
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
@@ -271,10 +271,10 @@ export default function TasksPage() {
       dispatch(deleteTask(task))
       if(totalCompletedTasks == 1 && task.status == 'completed'){
         if(task.completedOn && (task.completedOn).slice(0,10) === new Date().toISOString().slice(0, 10)){
-          await axios.get('http://localhost:5000/api/dashboard/updateStreak/remove', {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
+          await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/updateStreak/remove`, {withCredentials: true}) // if in this case we call this again then on backend the streak will reset to what it was previously !!
         }
       }
-      await axios.delete(`http://localhost:5000/api/tasks/deleteTask/${task._id}`, {withCredentials: true})
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/deleteTask/${task._id}`, {withCredentials: true})
     } catch (error) {
       if(axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message){
         alert(`${error.response.data.message}, Therefore need to refresh the whole page !!`)

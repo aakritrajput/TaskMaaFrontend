@@ -17,7 +17,7 @@ function InitAuth({children}: {children: React.ReactNode}) {
   useEffect(() => {
     async function initAuthHandler(){
       try {
-        const response = await axios.get('http://localhost:5000/api/user/authCheck', {withCredentials: true})
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/authCheck`, {withCredentials: true})
         const {_id, username, name='', email, profileType, profilePicture} = response.data.data
         dispatch(login({_id, username, name, email, profileType, profilePicture}))
 

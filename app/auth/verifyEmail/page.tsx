@@ -19,7 +19,7 @@ function VerifyEmail() {
         setLoading(true);
         setErrorMessage("");
         setSuccessMessage("");
-        const verificationLink = `http://localhost:5000/api/user/register/verify-token?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+        const verificationLink = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/register/verify-token?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
         try {
             const response = await axios.get(verificationLink)
             setSuccessMessage(response.data.message)

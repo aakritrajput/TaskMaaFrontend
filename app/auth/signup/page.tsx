@@ -26,7 +26,7 @@ export default function SignupPage() {
   const onSubmit: SubmitHandler<SignupFormValues> = async(data) => {
     setLoading(true)
     try {
-      const response = await axios.post('http://localhost:5000/api/user/register', data)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/register`, data)
       if(response.data.data == 'OK'){ // it is obvious but still for double check 😅
         reset();
       }

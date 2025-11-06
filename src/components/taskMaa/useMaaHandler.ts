@@ -10,7 +10,7 @@ export const useMaaHandler = () => {
     try {
       setLoading(true);
       setMessage("");
-      const res = await axios.get(`http://localhost:5000/api/maa/getResponse/${type}`, {withCredentials: true});
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/maa/getResponse/${type}`, {withCredentials: true});
       const msg = res.data?.data || "Maa is thinking...";
       setMessage(msg);
 

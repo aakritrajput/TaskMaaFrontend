@@ -71,7 +71,7 @@ export default function ChatPage() {
       async function getFriends() {
         try {
           const response = await axios.get(
-            "http://localhost:5000/api/user/getFriends",
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/getFriends`,
             { withCredentials: true }
           );
           dispatch(addFriends(response.data.data));
@@ -90,7 +90,7 @@ export default function ChatPage() {
       if (!selectedChatId) return;
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/chat/getMessages/${selectedChatId}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/getMessages/${selectedChatId}`,
           { withCredentials: true }
         );
         dispatch(
@@ -205,7 +205,7 @@ export default function ChatPage() {
   const initializeChatRoom = async (id: string) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/chat/createOneToOneChat/${id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/createOneToOneChat/${id}`,
         { withCredentials: true }
       );
       dispatch(addNewChat(response.data.data));

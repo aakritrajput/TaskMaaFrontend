@@ -157,7 +157,7 @@ export default function TaskMaaDashboard() {
       async function getTodaysTasks(){
         try {
           hasFetched.current.daily = true;
-          const response = await axios.get('http://localhost:5000/api/tasks/todaysTask', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/todaysTask`, {withCredentials: true});
           dispatch(addDailyTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingDailyTasks())
@@ -170,7 +170,7 @@ export default function TaskMaaDashboard() {
       async function getGeneralTasks(){
         try {
           hasFetched.current.general = true;
-          const response = await axios.get('http://localhost:5000/api/tasks/generalTasks', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/generalTasks`, {withCredentials: true});
           dispatch(addGeneralTasks(response.data.data));
         } catch (error) {
           dispatch(errorGettingGeneralTasks())
@@ -184,7 +184,7 @@ export default function TaskMaaDashboard() {
       async function getPerformance(){
         try {
           hasFetched.current.performance = true;
-          const response = await axios.get('http://localhost:5000/api/dashboard/getPerformanceStats', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/getPerformanceStats`, {withCredentials: true});
           dispatch(addPerformance(response.data.data));
 
           if(response.data.data.lastOnline){
@@ -216,7 +216,7 @@ export default function TaskMaaDashboard() {
       async function getLeaderBoard(){
         try {
           hasFetched.current.leaderboard = true;
-          const response = await axios.get('http://localhost:5000/api/dashboard/leaderboard', {withCredentials: true});
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/dashboard/leaderboard`, {withCredentials: true});
           dispatch(addLeaderBoard(response.data.data));
         } catch (error) {
           dispatch(errorGettingLeaderBoard())
