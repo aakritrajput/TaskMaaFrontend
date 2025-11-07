@@ -48,7 +48,7 @@ export default function UserSearch() {
   };
 
   return (
-    <div className="w-full min-h-[96vh] max-w-lg mx-auto mt-6 relative">
+    <div className="w-full min-h-[96vh] px-2 max-w-lg mx-auto mt-6 relative">
       {/* 🔹 Search form */}
       <form
         onSubmit={handleSearch}
@@ -72,7 +72,7 @@ export default function UserSearch() {
 
       {/* 🔹 Results */}
       {user && (
-        <div className="absolute mt-2 w-full bg-[#0c1b1e]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50 max-h-72 overflow-y-auto">
+        <div className="absolute px-2 mt-2 w-full bg-[#0c1b1e]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg overflow-hidden z-50 max-h-72 overflow-y-auto">
             <div
               className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-all"
             >
