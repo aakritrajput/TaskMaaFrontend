@@ -10,12 +10,12 @@ export default function App() {
           <div className="flex flex-col gap-1.5">
           {/* Hero Text */}
           <div className="flex flex-col items-start gap-2">
-            <h1 className="lg:text-[50px] leading-tight md:text-[40px] text-wrap text-2xl text-white font-bold">Don&apos;t just track tasks - <br />Feel respnsive for them.</h1>
+            <h1 className="lg:text-[50px] leading-tight md:text-[40px] text-wrap text-2xl text-white font-bold">Don&apos;t just track tasks - <br />Feel responsive for them.</h1>
             <p className="text-gray-300 text-[18px] text-wrap">TaskMaa keeps you focused, driven,  and emotionally <br/>committed to your goals.</p>
           </div>
           {/* CTA Button */}
           <Link
-            href='/login'
+            href='/auth/login'
             className="text-[#69f5c5] mt-3 flex justify-center hover:scale-105 items-center text-[20px] text-wrap backdrop-blur-[10px] backdrop-filter bg-[rgba(255,253,253,0.2)] h-12 rounded-[10px] cursor-pointer w-[181px] border border-[rgba(255,250,250,0.24)] border-solid shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] hover:bg-[rgba(255,253,253,0.3)] transition-all duration-300"
           >
           Get Started
