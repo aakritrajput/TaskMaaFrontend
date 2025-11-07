@@ -15,7 +15,7 @@ export const useMaaHandler = () => {
       setMessage(msg);
 
       // message disappears after few seconds
-      setTimeout(() => setMessage(""), 5000);
+      setTimeout(() => setMessage(""), 10000);
     } catch (err) {
       console.error("Maa API error:", err);
       setMessage("Maa is silent for now 🩷");
