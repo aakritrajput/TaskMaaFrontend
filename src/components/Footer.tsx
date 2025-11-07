@@ -29,9 +29,6 @@ export default function Footer() {
         <Link href="/" className="hover:text-[#2FAC81] transition">
           Home
         </Link>
-        <Link href="/features" className="hover:text-[#2FAC81] transition">
-          Features
-        </Link>
         <Link href="/about" className="hover:text-[#2FAC81] transition">
           About
         </Link>
