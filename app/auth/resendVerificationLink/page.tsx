@@ -2,11 +2,13 @@
 
 import { useForm } from "react-hook-form"
 import { useState } from "react";
-import axios from "axios";
+// import axios from "axios";
 import Input from "@/src/components/form/Input";
 import Button from "@/src/components/form/Button";
 import { Mail } from "lucide-react";
 import Image from "next/image";
+
+// ------------- right now for this hobby deploy we are not going to include email verification !! --------------
 
 type formData = {
     email: string;
@@ -18,22 +20,23 @@ function ResendVerificationLink() {
     const [errorMessage, setErrorMessage] = useState("")
     const [successMessage, setSuccessMessage] = useState("");;
     const submitHandler = async(data: {email: string}) => {
-        setLoading(true);
-        setErrorMessage("");
-        setSuccessMessage("");
-        try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/resendVerificationLink/${encodeURIComponent(data.email)}`)
-            setSuccessMessage(response.data.message)
-        } catch (error) {
-          console.log('error: ', error)
-            if (axios.isAxiosError(error) && error.response && error.response.data) {
-              setErrorMessage(error.response.data);
-            } else {
-              setErrorMessage("An unexpected error occurred");
-            }
-        }finally{
-            setLoading(false)
-        }
+      alert('Coming soon...')
+        // setLoading(true);
+        // setErrorMessage("");
+        // setSuccessMessage("");
+        // try {
+        //     const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/resendVerificationLink/${encodeURIComponent(data.email)}`)
+        //     setSuccessMessage(response.data.message)
+        // } catch (error) {
+        //   console.log('error: ', error)
+        //     if (axios.isAxiosError(error) && error.response && error.response.data) {
+        //       setErrorMessage(error.response.data);
+        //     } else {
+        //       setErrorMessage("An unexpected error occurred");
+        //     }
+        // }finally{
+        //     setLoading(false)
+        // }
     }
   return (
     <div className="w-full h-[90vh] flex flex-col justify-center items-center bg-transparent">
