@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const user = useSelector((state: RootState) => state.auth.user)
-  const [verifyLink, setVerifyLink] = useState<boolean>(false)
+  // const [verifyLink, setVerifyLink] = useState<boolean>(false)
 
    useEffect(() => {
     if (user) {
@@ -42,9 +42,9 @@ export default function LoginPage() {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
         setError(error.response.data.message);
-        if(error.status === 402){
-          setVerifyLink(true);
-        }
+        // if(error.status === 402){
+        //   setVerifyLink(true);
+        // }
       } else {
         setError("An unexpected error occurred");
       }
@@ -84,7 +84,7 @@ export default function LoginPage() {
           {errors.password && <p className="text-red-400 text-sm">{errors.password.message}</p>}
 
           {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
-          {verifyLink && <p className="text-green-400  text-sm"><Link href={'/auth/resendVerificationLink'}  className="text-[#06ad9c]">Resend verification email</Link></p>}
+          {/* {verifyLink && <p className="text-green-400  text-sm"><Link href={'/auth/resendVerificationLink'}  className="text-[#06ad9c]">Resend verification email</Link></p>} */}
           <Button loading={loading} type="submit">Login</Button>
         </form>
         
