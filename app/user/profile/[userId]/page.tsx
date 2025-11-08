@@ -144,21 +144,7 @@ const StrangerProfilePage = () => {
     isRequested,
     sentOrRecieved,
   } = profile;
-
-  console.log({
-    username,
-    name,
-    profilePicture,
-    profileType,
-    overallScore,
-    longestStreak,
-    about,
-    badges,
-    isFriend,
-    isRequested,
-    sentOrRecieved,
-  })
-
+  
   return (
     <motion.div
       className="min-h-screen flex justify-center items-center bg-transparent px-4 py-10 text-white"

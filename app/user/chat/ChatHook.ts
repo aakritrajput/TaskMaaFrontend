@@ -44,7 +44,6 @@ export const useSocket = (userId: string) => {
 
     socketRef.current = socket;
 
-    console.log('connected socket: ', socketRef.current)
     // when offline messages arrive
     socket.on('offline-messages', (messages) => {
       setOfflineMessagesHere(messages);

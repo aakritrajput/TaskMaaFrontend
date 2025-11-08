@@ -481,15 +481,15 @@ export default function ProfilePage() {
                     {requests.map((req) => (
                       <div key={req._id} className="flex flex-col gap-2">
                         <div className="flex flex-col justify-center items-center gap-1">
-                          <Image
-                            width={40}
-                            height={40}
-                            src={
-                              req.profilePicture ??
-                              "/profile/default_profile_pic.jpg"
-                            }
-                            alt="Profile Pic"
-                          />
+                          <div className="w-28 h-28 mx-auto rounded-full border-cyan-300 border-2 overflow-hidden">
+                             <Image
+                               src={req.profilePicture ? req.profilePicture  : "/profile/default_profile_pic.jpg"}
+                               alt="Profile Picture"
+                               width={130}
+                               height={130}
+                               className="object-cover rounded-full border-2"
+                             />
+                          </div>
                           <h1 className="text-md text-gray-300 text-center">
                             {req.username}
                           </h1>
