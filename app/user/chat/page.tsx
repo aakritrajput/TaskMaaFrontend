@@ -209,6 +209,7 @@ export default function ChatPage() {
         { withCredentials: true }
       );
       dispatch(addNewChat(response.data.data));
+      window.location.reload()
     } catch (error) {
       if (
         axios.isAxiosError(error) &&
