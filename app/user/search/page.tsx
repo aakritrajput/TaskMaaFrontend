@@ -76,13 +76,16 @@ export default function UserSearch() {
             <div
               className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-all"
             >
+              <div className="w-[40px] h-[40px] overflow-hidden rounded-full">
               <Image
                 src={user.profilePicture || "/profile/default_profile_pic.jpg"}
                 alt={user.username}
                 width={40}
                 height={40}
-                className="rounded-full border border-white/10"
+                className="rounded-full object-cover border border-white/10"
               />
+              </div>
+              
               <div className="flex flex-1">
                 <div className="flex flex-col gap-1">
                      <span className="text-white font-medium">{user.username}</span>
