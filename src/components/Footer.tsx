@@ -3,8 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Github, Linkedin, Mail } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import type { RootState } from "../lib/store";
 
 export default function Footer() {
+  const authStatus = useSelector((state: RootState) => state.auth.authStatus)
   return (
     <footer className="w-full pt-8 pb-20  px-6  mx-auto text-gray-300 select-none
                        backdrop-blur-xl bg-black/10 border-t shadow-amber-300 shadow-2xl border-white/20 rounded-t-3xl"
@@ -25,7 +28,7 @@ export default function Footer() {
       </Link>
 
       {/* Navigation */}
-      <nav className="flex gap-8 mt-6 md:mt-0 text-white font-semibold text-base">
+      {authStatus === 'unauthenticated' && <nav className="flex gap-8 mt-6 md:mt-0 text-white font-semibold text-base">
         <Link href="/" className="hover:text-[#2FAC81] transition">
           Home
         </Link>
@@ -35,7 +38,7 @@ export default function Footer() {
         <Link href="/contact" className="hover:text-[#2FAC81] transition">
           Contact
         </Link>
-      </nav>
+      </nav>}
 
       {/* Social Icons */}
       <div className="flex gap-6 mt-6 md:mt-0 text-white">
