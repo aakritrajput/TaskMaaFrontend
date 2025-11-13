@@ -37,7 +37,7 @@ export default function LoginPage() {
   const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
 
     if(authStatus === "ServerDown"){ // update the alert message according to issues..
-      alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvinece caused !")
+      alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvenience caused !")
       router.push('/')
       return ;
     }

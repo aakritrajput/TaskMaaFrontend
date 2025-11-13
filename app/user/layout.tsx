@@ -14,7 +14,7 @@ export default function UserLayout({children}: {children: React.ReactNode;}) {
     useEffect(() => {
       if(authStatus === "ServerDown"){
         // whenever we get any error or limit reached cases we will update the following message...
-        alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvinece caused !")
+        alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvenience caused !")
         router.push('/')
         return ;
       }
