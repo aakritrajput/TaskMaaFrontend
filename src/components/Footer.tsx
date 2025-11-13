@@ -28,7 +28,7 @@ export default function Footer() {
       </Link>
 
       {/* Navigation */}
-      {authStatus === 'unauthenticated' && <nav className="flex gap-8 mt-6 md:mt-0 text-white font-semibold text-base">
+      {(authStatus === 'unauthenticated' || authStatus === 'ServerDown') && <nav className="flex gap-8 mt-6 md:mt-0 text-white font-semibold text-base">
         <Link href="/" className="hover:text-[#2FAC81] transition">
           Home
         </Link>

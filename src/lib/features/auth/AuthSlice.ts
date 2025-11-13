@@ -25,6 +25,7 @@ const authSlice = createSlice({
       state.authStatus = 'unauthenticated';
     },
     setServerDown: (state) => {
+      state.user = null;
       state.authStatus = 'ServerDown';
     },
   },

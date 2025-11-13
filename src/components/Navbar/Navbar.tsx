@@ -33,7 +33,7 @@ export default function Navbar() {
     {authStatus === 'loading' &&
     <FallbackNavbar/>
     }
-    { authStatus === 'unauthenticated' && 
+    { authStatus === 'unauthenticated' || authStatus === 'ServerDown' && 
      <>
       {/* Navbar Container */}
       <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-16 w-[95vw] rounded-[20px] ">

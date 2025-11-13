@@ -16,6 +16,7 @@ export default function UserLayout({children}: {children: React.ReactNode;}) {
         // whenever we get any error or limit reached cases we will update the following message...
         alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvinece caused !")
         router.push('/')
+        return ;
       }
       if (!auth.user) {
         router.push("/auth/login");
