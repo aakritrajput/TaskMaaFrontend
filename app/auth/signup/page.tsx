@@ -8,6 +8,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "@/src/lib/store";
+import { useRouter } from "next/navigation";
 
 interface SignupFormValues {
   username: string;
@@ -22,8 +25,17 @@ export default function SignupPage() {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [successMessage, setSuccessMessage] = useState<string>('')
+  const authStatus = useSelector((state: RootState) => state.auth.authStatus)
+  const router = useRouter()
 
   const onSubmit: SubmitHandler<SignupFormValues> = async(data) => {
+    
+    if(authStatus === "ServerDown"){ // update the alert message according to issues..
+      alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvinece caused !")
+      router.push('/')
+      return ;
+    }
+
     setLoading(true)
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/register`, data)

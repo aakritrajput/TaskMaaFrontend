@@ -4,7 +4,7 @@ export type User = { _id: string; name?: string; email: string; username: string
 
 interface AuthState {
   user: User | null;
-  authStatus:"loading" | "authenticated" | "unauthenticated";
+  authStatus:"loading" | "authenticated" | "unauthenticated" | "ServerDown";
 }
 
 const initialState: AuthState = {
@@ -24,8 +24,11 @@ const authSlice = createSlice({
       state.user = null;
       state.authStatus = 'unauthenticated';
     },
+    setServerDown: (state) => {
+      state.authStatus = 'ServerDown';
+    },
   },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, setServerDown } = authSlice.actions;
 export default authSlice.reducer;

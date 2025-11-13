@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState<boolean>(false)
   const user = useSelector((state: RootState) => state.auth.user)
   // const [verifyLink, setVerifyLink] = useState<boolean>(false)
+  const authStatus = useSelector((state: RootState) => state.auth.authStatus)
 
    useEffect(() => {
     if (user) {
@@ -34,6 +35,13 @@ export default function LoginPage() {
   }, [user, router]);
 
   const onSubmit: SubmitHandler<LoginFormValues> = async(data) => {
+
+    if(authStatus === "ServerDown"){ // update the alert message according to issues..
+      alert("TaskMaa's redis upstash caching requests limit has been reached for this month. Therefore please visit maa's personal dashboard when the limit resets. Very sorry for the inconvinece caused !")
+      router.push('/')
+      return ;
+    }
+
     try {
       setLoading(true)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`, data, {withCredentials: true})
