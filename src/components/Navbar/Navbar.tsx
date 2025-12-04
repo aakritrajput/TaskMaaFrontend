@@ -17,8 +17,6 @@ export default function Navbar() {
   const pathname = usePathname();
 //  const dispatch = useDispatch();
 
-  console.log("navbar says hiiii..")
-
   // helper to check active route and return classes
   function linkClass(href: string) {
     const base = "cursor-pointer transition text-xl lg:text-[22px]";
@@ -35,7 +33,7 @@ export default function Navbar() {
     {authStatus === 'loading' &&
     <FallbackNavbar/>
     }
-    { authStatus === 'unauthenticated' || authStatus === 'ServerDown' && 
+    { (authStatus === 'unauthenticated' || authStatus === 'ServerDown') && (
      <>
       {/* Navbar Container */}
       <div className="mx-auto backdrop-blur-[5px] backdrop-filter px-3 py-2 flex justify-between items-center bg-[rgba(254,254,254,0.1)] h-16 w-[95vw] rounded-[20px] ">
@@ -141,7 +139,7 @@ export default function Navbar() {
         </div>
       </div>
      </>
-    }
+    )}
     {authStatus === 'authenticated' && 
     <>
     {/* Navbar */}
