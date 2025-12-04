@@ -23,6 +23,7 @@ function InitAuth({children}: {children: React.ReactNode}) {
         const {_id, username, name='', email, profileType, profilePicture} = response.data.data
         dispatch(login({_id, username, name, email, profileType, profilePicture}))
 
+        console.log("dispatched from providers !")
         // uncomment it when server is again live:
         // dispatch(setServerDown()); // we will by ourself provide the reason whereever needed !!
         

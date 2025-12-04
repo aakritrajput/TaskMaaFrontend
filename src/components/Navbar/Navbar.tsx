@@ -17,6 +17,8 @@ export default function Navbar() {
   const pathname = usePathname();
 //  const dispatch = useDispatch();
 
+  console.log("navbar says hiiii..")
+
   // helper to check active route and return classes
   function linkClass(href: string) {
     const base = "cursor-pointer transition text-xl lg:text-[22px]";
