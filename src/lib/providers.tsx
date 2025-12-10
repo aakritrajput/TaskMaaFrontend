@@ -4,7 +4,7 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import { RootState, store } from "./store";
 import { useEffect } from "react";
 import { login, logout } from "@/src/lib/features/auth/AuthSlice";
-// import { setServerDown } from "@/src/lib/features/auth/AuthSlice";
+import { setServerDown } from "@/src/lib/features/auth/AuthSlice";
 import axios from "axios";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -18,13 +18,13 @@ function InitAuth({children}: {children: React.ReactNode}) {
   useEffect(() => {
     async function initAuthHandler(){
       try {
-        
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/authCheck`, {withCredentials: true})
-        const {_id, username, name='', email, profileType, profilePicture} = response.data.data
-        dispatch(login({_id, username, name, email, profileType, profilePicture}))
+        // uncomment if server is live
+        // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/authCheck`, {withCredentials: true})
+        // const {_id, username, name='', email, profileType, profilePicture} = response.data.data
+        // dispatch(login({_id, username, name, email, profileType, profilePicture}))
 
-        // uncomment it when server is again live:
-        // dispatch(setServerDown()); // we will by ourself provide the reason whereever needed !!
+        // comment it when server is again live:
+        dispatch(setServerDown()); // we will by ourself provide the reason whereever needed !!
         
       } catch (error) {
         if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
