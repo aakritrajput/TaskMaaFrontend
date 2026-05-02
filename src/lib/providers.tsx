@@ -19,12 +19,12 @@ function InitAuth({children}: {children: React.ReactNode}) {
     async function initAuthHandler(){
       try {
         // uncomment if server is live
-        // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/authCheck`, {withCredentials: true})
-        // const {_id, username, name='', email, profileType, profilePicture} = response.data.data
-        // dispatch(login({_id, username, name, email, profileType, profilePicture}))
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/authCheck`, {withCredentials: true})
+        const {_id, username, name='', email, profileType, profilePicture} = response.data.data
+        dispatch(login({_id, username, name, email, profileType, profilePicture}))
 
         // comment it when server is again live:
-        dispatch(setServerDown()); // we will by ourself provide the reason whereever needed !!
+        // dispatch(setServerDown()); // we will by ourself provide the reason whereever needed !!
         
       } catch (error) {
         if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
